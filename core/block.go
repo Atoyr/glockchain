@@ -2,6 +2,7 @@ package core
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 
 	"github.com/atoyr/gochain/util"
 )
@@ -17,7 +18,7 @@ type Block struct {
 
 func (b *Block) ToTransactionByte() []byte {
 	bytes := make([]byte, 0, 10)
-	for i, v := range b.Transactions {
+	for _, v := range b.Transactions {
 		bytes = append(bytes, util.Interface2bytes(v.ToByte())...)
 	}
 	return bytes
@@ -35,7 +36,8 @@ func (b *Block) ToByte() []byte {
 }
 
 func (b *Block) ToHashString() string {
-	return sha256.Sum256([]byte(b.ToByte()))
+	converted := sha256.Sum256(b.ToByte())
+	return hex.EncodeToString(converted[:])
 }
 
 var (
