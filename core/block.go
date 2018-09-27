@@ -2,21 +2,21 @@ package core
 
 import (
 	"crypto/sha256"
-	"encoding/hex"
+	"time"
 
 	"github.com/atoyr/gochain/util"
 )
 
 type Block struct {
 	Index        int64
-	PreviousHash string
+	PreviousHash []byte
 	Timestamp    int64
-	Hash         string
+	Hash         []byte
 	Nonce        int
-	Transactions []Transaction
+	Transactions []*Transaction
 }
 
-func (b *Block) ToTransactionByte() []byte {
+func (b *Block) ToTransactionsByte() []byte {
 	bytes := make([]byte, 0, 10)
 	for _, v := range b.Transactions {
 		bytes = append(bytes, util.Interface2bytes(v.ToByte())...)
@@ -31,20 +31,20 @@ func (b *Block) ToByte() []byte {
 	bytes = append(bytes, util.Interface2bytes(b.Timestamp)...)
 	bytes = append(bytes, util.Interface2bytes(b.Hash)...)
 	bytes = append(bytes, util.Interface2bytes(b.Nonce)...)
-	bytes = append(bytes, b.ToTransactionByte()...)
+	bytes = append(bytes, b.ToTransactionsByte()...)
 	return bytes
 }
 
-func (b *Block) ToHashString() string {
-	converted := sha256.Sum256(b.ToByte())
-	return hex.EncodeToString(converted[:])
+func (b *Block) SetHash() {
+	hash := sha256.Sum256(b.ToByte())
+	b.Hash = hash[:]
 }
 
-var (
-	blockchain = []*Block{}
-)
-var genesisBlock = &Block{
-	Index:        0,
-	PreviousHash: "0",
-	Timestamp:    0,
+func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
+	block := &Block{Timestamp: time.Now().Unix(), Transactions: transactions, PreviousHash: prevBlockHash}
+	block.SetHash()
+	return block
+}
+func NewGenesisBlock() *Block {
+	return NewBlock([]*Transaction{}, []byte{})
 }
