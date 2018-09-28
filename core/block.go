@@ -12,7 +12,7 @@ type Block struct {
 	PreviousHash []byte
 	Timestamp    int64
 	Hash         []byte
-	Nonce        int
+	Nonce        int64
 	Transactions []*Transaction
 }
 
