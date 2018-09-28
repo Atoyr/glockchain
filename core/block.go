@@ -1,7 +1,11 @@
 package core
 
 import (
+	"bytes"
 	"crypto/sha256"
+	"encoding/gob"
+	"log"
+	"os"
 	"time"
 
 	"github.com/atoyr/gochain/util"
@@ -47,4 +51,15 @@ func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
 }
 func NewGenesisBlock() *Block {
 	return NewBlock([]*Transaction{}, []byte{})
+}
+
+func (b *Block) Serialize() []byte {
+	var result bytes.Buffer
+	encoder := gob.NewEncoder(&result)
+	err := encoder.Encode(b)
+	if err == nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+	return result.Bytes()
 }
