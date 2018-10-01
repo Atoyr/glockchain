@@ -8,7 +8,7 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-const dbFile = "glockchain_%s.db"
+const dbFile = "glockchains.db"
 const blocksBucket = "gobucket"
 
 type Blockchain struct {
@@ -34,7 +34,7 @@ func (bc *Blockchain) AddBlock(tx []*Transaction) {
 		err := b.Put(newBlock.Hash, newBlock.Serialize())
 		err = b.Put([]byte("l"), newBlock.Hash)
 		if err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 			os.Exit(1)
 		}
 		bc.tip = newBlock.Hash
@@ -60,6 +60,7 @@ func NewBlockchain() *Blockchain {
 			genesis := NewGenesisBlock()
 			b, err := tx.CreateBucket([]byte(blocksBucket))
 			err = b.Put(genesis.Hash, genesis.Serialize())
+			err = b.Put([]byte("l"), genesis.Hash)
 			if err != nil {
 				log.Fatal(err)
 				os.Exit(1)

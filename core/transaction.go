@@ -5,8 +5,6 @@ import "github.com/atoyr/gochain/util"
 type Transaction struct {
 	Version int
 	ID      []byte
-	Input   []TXInput
-	Output  []TXOutput
 }
 
 func (t *Transaction) ToByte() []byte {
