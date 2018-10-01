@@ -60,9 +60,7 @@ func NewBlockchain() *Blockchain {
 			genesis := NewGenesisBlock()
 			b, err := tx.CreateBucket([]byte(blocksBucket))
 			err = b.Put(genesis.Hash, genesis.Serialize())
-			fmt.Println("error !!!")
 			if err != nil {
-				fmt.Println("error !!!")
 				log.Fatal(err)
 				os.Exit(1)
 			}
