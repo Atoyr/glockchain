@@ -1,6 +1,15 @@
 package core
 
-import "github.com/boltdb/bolt"
+import (
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/boltdb/bolt"
+)
+
+const dbFile = "gochain_%s.db"
+const blocksBucket = "gobucket"
 
 type Blockchain struct {
 	Blocks []*Block
@@ -15,17 +24,26 @@ func (bc *Blockchain) AddBlock() {
 }
 
 func NewBlockchain() *Blockchain {
+	dbFile := fmt.Sprint(dbFile, "0")
 	var tip []byte
-	db, err := bolt.Open("test.db", 0600, nil)
+	db, err := bolt.Open(dbFile, 0600, nil)
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
 	err = db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(1))
+		b := tx.Bucket([]byte(blocksBucket))
 		if b == nil {
 			genesis := NewGenesisBlock()
-			b, err := tx.CreateBucket([]byte())
+			b, err := tx.CreateBucket([]byte(blocksBucket))
 			err = b.Put(genesis.Hash, genesis.Serialize())
+			if err != nil {
+				log.Fatal(err)
+				os.Exit(1)
+			}
 			tip = genesis.Hash
-			return nil
 		}
+		return nil
 	})
 	return &Blockchain{[]*Block{NewGenesisBlock()}, []*Transaction{}}
 }
