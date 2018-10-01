@@ -8,7 +8,7 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-const dbFile = "gochain_%s.db"
+const dbFile = "glockchain_%s.db"
 const blocksBucket = "gobucket"
 
 type Blockchain struct {
