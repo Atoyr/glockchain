@@ -1,6 +1,7 @@
 package util
 
 import (
+	"bytes"
 	"math/big"
 )
 
@@ -22,6 +23,20 @@ func Base58Encode(input []byte) []byte {
 	}
 	ReverseBytes(result)
 	return result
+}
+
+func Base58Decode(input []byte) []byte {
+	result := big.NewInt(0)
+	for _, b := range input {
+		charIndex := bytes.IndexByte(base58Char, b)
+		result.Mul(result, big.NewInt(58))
+		result.Add(result, big.NewInt(int64(charIndex)))
+	}
+	decode := result.Bytes()
+	if input[0] == base58Char[0] {
+		decode = append([]byte{0x00}, decode...)
+	}
+	return decode
 }
 
 func ReverseBytes(data []byte) {
