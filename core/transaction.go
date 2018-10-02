@@ -1,6 +1,6 @@
 package core
 
-import "github.com/atoyr/gochain/util"
+import "github.com/atoyr/glockchain/util"
 
 type Transaction struct {
 	Version int

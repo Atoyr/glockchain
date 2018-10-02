@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/atoyr/gochain/core"
+	"github.com/atoyr/glockchain/core"
 )
 
 func main() {
