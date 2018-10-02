@@ -50,9 +50,8 @@ func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
 	return block
 }
 func NewGenesisBlock() *Block {
-	transactions := make([]*Transaction, 1)
-	transactions = append(transactions, &Transaction{0, []byte("s")})
-	return NewBlock([]*Transaction{}, []byte{})
+	// transactions := make([]*Transaction, 1)
+	return nil
 }
 
 func (b *Block) Serialize() []byte {
