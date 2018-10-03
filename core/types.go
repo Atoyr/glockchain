@@ -22,3 +22,16 @@ func (h Hash) SetBytes(b []byte) {
 	}
 	copy(h[HashLength-len(b):], b)
 }
+
+func BytesToAddress(b []byte) Address {
+	var a Address
+	a.SetBytes(b)
+	return a
+}
+func (a Address) Bytes() []byte { return a[:] }
+func (a Address) SetBytes(b []byte) {
+	if len(b) > len(a) {
+		b = b[len(b)-AddressLength:]
+	}
+	copy(a[AddressLength-len(b):], b)
+}
