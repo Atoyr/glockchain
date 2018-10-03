@@ -8,7 +8,7 @@ import (
 )
 
 type BlockchainIterator struct {
-	currentHash []byte
+	currentHash Hash
 	db          *bolt.DB
 }
 
@@ -21,7 +21,7 @@ func (bci *BlockchainIterator) Next() *Block {
 	var block *Block
 	err := bci.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(blocksBucket))
-		encodedBlock := b.Get(bci.currentHash)
+		encodedBlock := b.Get(bci.currentHash.Bytes())
 		block = DeserializeBlock(encodedBlock)
 		return nil
 	})

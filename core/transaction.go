@@ -6,23 +6,15 @@ import (
 	"encoding/gob"
 	"log"
 	"os"
-
-	"github.com/atoyr/glockchain/util"
 )
 
+// Transaction Data
 type Transaction struct {
-	version     int
-	ID          []byte
-	blockHash   []byte
-	blockNumber []byte
-	Input       []TXInput
-	Output      []TXOutput
-}
-
-func (t *Transaction) ToByte() []byte {
-	bytes := make([]byte, 100)
-	bytes = append(bytes, util.Interface2bytes(t.version)...)
-	return bytes
+	Version   int
+	ID        []byte
+	BlockHash Hash
+	Input     []TXInput
+	Output    []TXOutput
 }
 
 func (tx *Transaction) Serialize() []byte {
@@ -42,4 +34,14 @@ func (tx *Transaction) Hash() []byte {
 	txCopy.ID = []byte{}
 	hash = sha256.Sum256(txCopy.Serialize())
 	return hash[:]
+}
+
+func DeserializeTransaction(data []byte) Transaction {
+	var tx Transaction
+	decoder := gob.NewDecoder(bytes.NewReader(data))
+	err := decoder.Decode(&tx)
+	if err != nil {
+		log.Panic(err)
+	}
+	return tx
 }

@@ -12,15 +12,15 @@ const dbFile = "glockchains.db"
 const blocksBucket = "gobucket"
 
 type Blockchain struct {
-	tip []byte
+	tip Hash
 	db  *bolt.DB
 }
 
 func (bc *Blockchain) AddBlock(tx []*Transaction) {
-	var lastHash []byte
+	var lastHash Hash
 	err := bc.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(blocksBucket))
-		lastHash = b.Get([]byte("l"))
+		lastHash = BytesToHash(b.Get([]byte("l")))
 		return nil
 	})
 	if err != nil {
@@ -31,8 +31,8 @@ func (bc *Blockchain) AddBlock(tx []*Transaction) {
 
 	err = bc.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(blocksBucket))
-		err := b.Put(newBlock.Hash, newBlock.Serialize())
-		err = b.Put([]byte("l"), newBlock.Hash)
+		err := b.Put(newBlock.Hash.Bytes(), newBlock.Serialize())
+		err = b.Put([]byte("l"), newBlock.Hash.Bytes())
 		if err != nil {
 			log.Panic(err)
 			os.Exit(1)
@@ -48,7 +48,7 @@ func (bc *Blockchain) AddBlock(tx []*Transaction) {
 
 func NewBlockchain() *Blockchain {
 	dbFile := fmt.Sprint(dbFile, "")
-	var tip []byte
+	var tip Hash
 	db, err := bolt.Open(dbFile, 0600, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -59,8 +59,8 @@ func NewBlockchain() *Blockchain {
 		if b == nil {
 			genesis := NewGenesisBlock()
 			b, err := tx.CreateBucket([]byte(blocksBucket))
-			err = b.Put(genesis.Hash, genesis.Serialize())
-			err = b.Put([]byte("l"), genesis.Hash)
+			err = b.Put(genesis.Hash.Bytes(), genesis.Serialize())
+			err = b.Put([]byte("l"), genesis.Hash.Bytes())
 			if err != nil {
 				log.Fatal(err)
 				os.Exit(1)
