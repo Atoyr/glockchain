@@ -5,7 +5,6 @@ import (
 )
 
 func main() {
-	bc := core.NewBlockchain()
-	cli := core.CLI{bc}
+	var cli core.CLI
 	cli.Run()
 }

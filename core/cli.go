@@ -11,11 +11,24 @@ type CLI struct {
 }
 
 func (cli *CLI) printExecute() {
-	fmt.Println("   ____")
-	fmt.Println("  / __ \\")
-	fmt.Println(" / / __")
-	fmt.Println("/ /_/  |")
-	fmt.Println("\\___/|_|")
+	fmt.Println("  /$$$$$$  /$$                     /$$  ")
+	fmt.Println(" /$$__  $$| $$                    | $$  ")
+	fmt.Println("| $$  \\__/| $$  /$$$$$$   /$$$$$$$| $$   /$$")
+	fmt.Println("| $$ /$$$$| $$ /$$__  $$ /$$_____/| $$  /$$/")
+	fmt.Println("| $$|_  $$| $$| $$  \\ $$| $$      | $$$$$$/ ")
+	fmt.Println("| $$  \\ $$| $$| $$  | $$| $$      | $$_  $$ ")
+	fmt.Println("|  $$$$$$/| $$|  $$$$$$/|  $$$$$$$| $$ \\  $$")
+	fmt.Println(" \\______/ |__/ \\______/  \\_______/|__/  \\__/")
+	fmt.Println("")
+	fmt.Println("      /$$$$$$  /$$                 /$$      ")
+	fmt.Println("     /$$__  $$| $$                |__/")
+	fmt.Println("    | $$  \\__/| $$$$$$$   /$$$$$$  /$$ /$$$$$$$")
+	fmt.Println("    | $$      | $$__  $$ |____  $$| $$| $$__  $$")
+	fmt.Println("    | $$      | $$  \\ $$  /$$$$$$$| $$| $$  \\ $$")
+	fmt.Println("    | $$    $$| $$  | $$ /$$__  $$| $$| $$  | $$")
+	fmt.Println("    |  $$$$$$/| $$  | $$|  $$$$$$$| $$| $$  | $$")
+	fmt.Println("     \\______/ |__/  |__/ \\_______/|__/|__/  |__/")
+
 }
 
 func (cli *CLI) printUsage() {
@@ -28,7 +41,7 @@ func (cli *CLI) validateArgs() {
 	}
 }
 func (cli *CLI) Run() {
-	cli.validateArgs()
+	//cli.validateArgs()
 	cli.printExecute()
 	addBlockCmd := flag.NewFlagSet("addblock", flag.ExitOnError)
 	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
