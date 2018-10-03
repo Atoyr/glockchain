@@ -49,9 +49,8 @@ func NewBlock(transactions []*Transaction, prevBlockHash Hash) *Block {
 	block.SetHash()
 	return block
 }
-func NewGenesisBlock() *Block {
-	// transactions := make([]*Transaction, 1)
-	return nil
+func NewGenesisBlock(tx *Transaction) *Block {
+	return NewBlock([]*Transaction{tx}, BytesToHash([]byte{}))
 }
 
 func (b *Block) Serialize() []byte {

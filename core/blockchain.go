@@ -57,7 +57,8 @@ func NewBlockchain() *Blockchain {
 	err = db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(blocksBucket))
 		if b == nil {
-			genesis := NewGenesisBlock()
+			var t *Transaction
+			genesis := NewGenesisBlock(t)
 			b, err := tx.CreateBucket([]byte(blocksBucket))
 			err = b.Put(genesis.Hash.Bytes(), genesis.Serialize())
 			err = b.Put([]byte("l"), genesis.Hash.Bytes())
