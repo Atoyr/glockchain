@@ -1,6 +1,8 @@
 package core
 
-import "github.com/atoyr/glockchain/util"
+import (
+	"github.com/atoyr/glockchain/util"
+)
 
 type TXData struct {
 	TXHash    Hash

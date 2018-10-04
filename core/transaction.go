@@ -2,9 +2,11 @@ package core
 
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"crypto/sha256"
 	"encoding/gob"
 	"log"
+	"math/big"
 	"os"
 )
 
@@ -12,6 +14,8 @@ import (
 type Transaction struct {
 	Version   int
 	BlockHash Hash
+	R         big.Int
+	S         big.Int
 	Input     []*TXData
 	Output    []*TXData
 }
@@ -32,6 +36,9 @@ func (tx *Transaction) Hash() []byte {
 	txCopy := *tx
 	hash = sha256.Sum256(txCopy.Serialize())
 	return hash[:]
+}
+
+func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey) {
 }
 
 func DeserializeTransaction(data []byte) Transaction {
