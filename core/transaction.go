@@ -16,8 +16,8 @@ type Transaction struct {
 	BlockHash Hash
 	R         big.Int
 	S         big.Int
-	Input     []*TXData
-	Output    []*TXData
+	Input     []*TXInput
+	Output    []*TXOutput
 }
 
 func (tx *Transaction) Serialize() []byte {
@@ -51,26 +51,25 @@ func DeserializeTransaction(data []byte) Transaction {
 	return tx
 }
 
-func NewTransaction(inputs []*TXData, to Address, value int) *Transaction {
+func NewTransaction(prevOutput []*TXOutput, to Address, value int) *Transaction {
 	sumValue := 0
-	from := inputs[0].Address
-	for _, txd := range inputs {
-		sumValue += txd.Value
+	for _, txo := range prevOutput {
+		sumValue += txo.Value
 	}
 	diffValue := sumValue - value
 	if diffValue < 0 {
 		return nil
 	}
 	var tx Transaction
-	tx.Version = int(version)
+	tx.Version = int(Version)
 	tx.BlockHash = BytesToHash([]byte{})
-	tx.Input = inputs
+	// tx.Input = inputs
 
-	outputs := make([]*TXData, 2)
-	outputs = append(outputs, []*TXData{NewTXData(0, to, value)}...)
-	if diffValue > 0 {
-		outputs = append(outputs, []*TXData{NewTXData(1, from, diffValue)}...)
-	}
+	outputs := make([]*TXOutput, 2)
+	outputs = append(outputs, []*TXOutput{NewTXOutput(value, to)}...)
+	//if diffValue > 0 {
+	//outputs = append(outputs, []*TXOutput{NewTXOutput(from, diffValue)}...)
+	//}
 	tx.Output = outputs
 	return &tx
 }
