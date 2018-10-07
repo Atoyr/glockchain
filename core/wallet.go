@@ -12,9 +12,7 @@ import (
 	"golang.org/x/crypto/ripemd160"
 )
 
-const version = byte(0x00)
-const addressChecksumLen = 4
-
+// Wallet is Glockchain Wallet private and publick keyValue pair
 type Wallet struct {
 	PrivateKey ecdsa.PrivateKey
 	PublicKey  []byte
@@ -23,6 +21,7 @@ type Wallets struct {
 	Wallets map[string]*Wallet
 }
 
+// NewWallet is Create new wallet
 func NewWallet() *Wallet {
 	private, public := newKeyPair()
 	wallet := Wallet{private, public}
@@ -31,7 +30,7 @@ func NewWallet() *Wallet {
 
 func (w Wallet) GetAddress() []byte {
 	pubKeyHash := HashPubKey(w.PublicKey)
-	versionPayload := append([]byte{version}, pubKeyHash...)
+	versionPayload := append([]byte{WalletVersion}, pubKeyHash...)
 	checksum := checksum(versionPayload)
 	fullPayload := append(versionPayload, checksum...)
 	address := util.Base58Encode(fullPayload)
@@ -63,5 +62,5 @@ func HashPubKey(pubKey []byte) []byte {
 func checksum(payload []byte) []byte {
 	firstSHA := sha256.Sum256(payload)
 	secondSHA := sha256.Sum256(firstSHA[:])
-	return secondSHA[:addressChecksumLen]
+	return secondSHA[:addressChecksumLength]
 }
