@@ -1,8 +1,14 @@
 package core
 
+import (
+	"bytes"
+	"encoding/gob"
+	"log"
+)
 
 type Hash [HashLength]byte
 type Address [AddressLength]byte
+type TXOutputs []TXOutput
 
 func BytesToHash(b []byte) Hash {
 	var h Hash
@@ -28,4 +34,24 @@ func (a Address) SetBytes(b []byte) {
 		b = b[len(b)-AddressLength:]
 	}
 	copy(a[AddressLength-len(b):], b)
+}
+
+func (outs TXOutputs) Serialize() []byte {
+	var buffer bytes.Buffer
+	enc := gob.NewEncoder(&buffer)
+	err := enc.Encode(buffer)
+	if err != nil {
+		log.Panic(err)
+	}
+	return buffer.Bytes()
+}
+
+func DeserializeTXOutputs(data []byte) TXOutputs {
+	var outputs TXOutputs
+	dec := gob.NewDecoder(bytes.NewReader(data))
+	err := dec.Decode(&outputs)
+	if err != nil {
+		log.Panic(err)
+	}
+	return outputs
 }
