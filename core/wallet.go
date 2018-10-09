@@ -17,9 +17,6 @@ type Wallet struct {
 	PrivateKey ecdsa.PrivateKey
 	PublicKey  []byte
 }
-type Wallets struct {
-	Wallets map[string]*Wallet
-}
 
 // NewWallet is Create new wallet
 func NewWallet() *Wallet {

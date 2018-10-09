@@ -45,12 +45,18 @@ func (cli *CLI) Run() {
 	cli.printExecute()
 	addBlockCmd := flag.NewFlagSet("addblock", flag.ExitOnError)
 	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
+	createWalletCmd := flag.NewFlagSet("cw", flag.ExitOnError)
+	printWalletCmd := flag.NewFlagSet("pw", flag.ExitOnError)
 	var err error
 	switch os.Args[1] {
 	case "addblock":
 		err = addBlockCmd.Parse(os.Args[2:])
 	case "printchain":
 		err = printChainCmd.Parse(os.Args[2:])
+	case "cw":
+		err = createWalletCmd.Parse(os.Args[2:])
+	case "pw":
+		err = printWalletCmd.Parse(os.Args[2:])
 	default:
 		cli.printUsage()
 		os.Exit(1)
@@ -61,7 +67,12 @@ func (cli *CLI) Run() {
 	if printChainCmd.Parsed() {
 		cli.printChain()
 	}
-
+	if createWalletCmd.Parsed() {
+		cli.createWallet()
+	}
+	if printWalletCmd.Parsed() {
+		cli.printWallets()
+	}
 }
 
 func (cli *CLI) printChain() {
@@ -73,5 +84,19 @@ func (cli *CLI) printChain() {
 		if len(block.PreviousHash) == 0 {
 			break
 		}
+	}
+}
+func (cli *CLI) createWallet() {
+	wallets := NewWallets()
+	address := wallets.CreateWallet()
+	wallets.SaveToFile()
+
+	fmt.Printf("address: %s\n", address)
+}
+
+func (cli *CLI) printWallets() {
+	wallets := NewWallets()
+	for address := range wallets.Wallets {
+		fmt.Printf("address: %s\n", address)
 	}
 }

@@ -12,3 +12,5 @@ const AddressLength = 20
 const WalletVersion = byte(0x00)
 
 const addressChecksumLength = 4
+
+const walletFile = "wallet.dat"
