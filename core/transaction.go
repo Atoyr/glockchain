@@ -39,6 +39,7 @@ func (tx *Transaction) Hash() []byte {
 }
 
 func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey) {
+
 }
 
 func DeserializeTransaction(data []byte) Transaction {

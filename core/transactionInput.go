@@ -12,9 +12,8 @@ type TXInput struct {
 	PubKey      []byte
 }
 
-func NewTXData(txindex int, address Address, value int) *TXInput {
+func NewTXInput(prevTX Transaction, prevTXIndex int) *TXInput {
 	var txi TXInput
-	txi.Address = address
 	return &txi
 }
 
