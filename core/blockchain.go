@@ -1,26 +1,27 @@
 package core
 
 import (
-	"fmt"
 	"log"
 	"os"
 
-	"github.com/boltdb/bolt"
+	"github.com/tidwall/buntdb"
 )
 
-const dbFile = "glockchains.db"
 const blocksBucket = "gobucket"
 
 type Blockchain struct {
 	tip Hash
-	db  *bolt.DB
 }
 
 func (bc *Blockchain) AddBlock(tx []*Transaction) {
 	var lastHash Hash
-	err := bc.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(blocksBucket))
-		lastHash = BytesToHash(b.Get([]byte("l")))
+	db := getBlockchainDatabase()
+	err := db.View(func(tx *buntdb.Tx) error {
+		val, err := tx.Get("l")
+		if err != nil {
+			return err
+		}
+		lastHash = BytesToHash([]byte(val))
 		return nil
 	})
 	if err != nil {
@@ -29,10 +30,9 @@ func (bc *Blockchain) AddBlock(tx []*Transaction) {
 	}
 	newBlock := NewBlock(tx, lastHash)
 
-	err = bc.db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(blocksBucket))
-		err := b.Put(newBlock.Hash.Bytes(), newBlock.Serialize())
-		err = b.Put([]byte("l"), newBlock.Hash.Bytes())
+	err = db.Update(func(tx *buntdb.Tx) error {
+		_, _, err := tx.Set(newBlock.Hash.String(), string(newBlock.Serialize()), nil)
+		_, _, err = tx.Set("l", newBlock.Hash.String(), nil)
 		if err != nil {
 			log.Panic(err)
 			os.Exit(1)
@@ -47,16 +47,15 @@ func (bc *Blockchain) AddBlock(tx []*Transaction) {
 }
 
 func NewBlockchain() *Blockchain {
-	dbFile := fmt.Sprint(dbFile, "")
-	var tip Hash
-	db, err := bolt.Open(dbFile, 0600, nil)
-	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
-	}
-	err = db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(blocksBucket))
-		if b == nil {
+	db := getBlockchainDatabase()
+	var findData bool
+	findData = false
+	err := db.Update(func(tx *buntdb.Tx) error {
+		tx.Ascend("", func(k, v string) bool {
+			findData = true
+			return false
+		})
+		if !findData {
 			var t *Transaction
 			genesis := NewGenesisBlock(t)
 			b, err := tx.CreateBucket([]byte(blocksBucket))
@@ -72,4 +71,10 @@ func NewBlockchain() *Blockchain {
 	})
 	bc := Blockchain{tip, db}
 	return &bc
+}
+
+func getBlockchainDatabase() *buntdb.DB {
+	db, err := buntdb.Open(dbFile)
+	errorHandle(err)
+	return db
 }

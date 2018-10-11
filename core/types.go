@@ -15,7 +15,8 @@ func BytesToHash(b []byte) Hash {
 	h.SetBytes(b)
 	return h
 }
-func (h Hash) Bytes() []byte { return h[:] }
+func (h Hash) Bytes() []byte  { return h[:] }
+func (h Hash) String() string { return string(h.Bytes()) }
 func (h Hash) SetBytes(b []byte) {
 	if len(b) > len(h) {
 		b = b[len(b)-HashLength:]
