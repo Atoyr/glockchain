@@ -50,6 +50,7 @@ func NewBlockchain() *Blockchain {
 	db := getBlockchainDatabase()
 	var findData bool
 	findData = false
+	var tip Hash
 	err := db.Update(func(tx *buntdb.Tx) error {
 		tx.Ascend("", func(k, v string) bool {
 			findData = true
@@ -58,9 +59,8 @@ func NewBlockchain() *Blockchain {
 		if !findData {
 			var t *Transaction
 			genesis := NewGenesisBlock(t)
-			b, err := tx.CreateBucket([]byte(blocksBucket))
-			err = b.Put(genesis.Hash.Bytes(), genesis.Serialize())
-			err = b.Put([]byte("l"), genesis.Hash.Bytes())
+			_, _, err := tx.Set(genesis.Hash.String(), string(genesis.Serialize()), nil)
+			_, _, err = tx.Set("l", genesis.Hash.String(), nil)
 			if err != nil {
 				log.Fatal(err)
 				os.Exit(1)
@@ -69,7 +69,8 @@ func NewBlockchain() *Blockchain {
 		}
 		return nil
 	})
-	bc := Blockchain{tip, db}
+	errorHandle(err)
+	bc := Blockchain{tip}
 	return &bc
 }
 

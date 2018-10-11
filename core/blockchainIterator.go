@@ -4,25 +4,25 @@ import (
 	"log"
 	"os"
 
-	"github.com/boltdb/bolt"
+	"github.com/tidwall/buntdb"
 )
 
 type BlockchainIterator struct {
 	currentHash Hash
-	db          *bolt.DB
 }
 
 func (bc *Blockchain) Iterator() *BlockchainIterator {
-	bci := &BlockchainIterator{bc.tip, bc.db}
+	bci := &BlockchainIterator{bc.tip}
 	return bci
 }
 
 func (bci *BlockchainIterator) Next() *Block {
 	var block *Block
-	err := bci.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(blocksBucket))
-		encodedBlock := b.Get(bci.currentHash.Bytes())
-		block = DeserializeBlock(encodedBlock)
+	db := getBlockchainDatabase()
+	err := db.View(func(tx *buntdb.Tx) error {
+		encodedBlock, err := tx.Get(bci.currentHash.String())
+		errorHandle(err)
+		block = DeserializeBlock([]byte(encodedBlock))
 		return nil
 	})
 	if err != nil {
