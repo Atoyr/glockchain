@@ -3,6 +3,7 @@ package core
 import (
 	"bytes"
 	"encoding/gob"
+	"fmt"
 	"log"
 )
 
@@ -16,7 +17,7 @@ func BytesToHash(b []byte) Hash {
 	return h
 }
 func (h Hash) Bytes() []byte  { return h[:] }
-func (h Hash) String() string { return string(h.Bytes()) }
+func (h Hash) String() string { return fmt.Sprintf("%s", h) }
 func (h Hash) SetBytes(b []byte) {
 	if len(b) > len(h) {
 		b = b[len(b)-HashLength:]

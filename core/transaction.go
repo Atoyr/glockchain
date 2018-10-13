@@ -6,16 +6,13 @@ import (
 	"crypto/sha256"
 	"encoding/gob"
 	"log"
-	"math/big"
 	"os"
 )
 
 // Transaction Data
 type Transaction struct {
-	Version   int
+	Version   byte
 	BlockHash Hash
-	R         big.Int
-	S         big.Int
 	Input     []*TXInput
 	Output    []*TXOutput
 }
@@ -62,7 +59,7 @@ func NewTransaction(prevOutput []*TXOutput, to Address, value int) *Transaction 
 		return nil
 	}
 	var tx Transaction
-	tx.Version = int(Version)
+	tx.Version = Version
 	tx.BlockHash = BytesToHash([]byte{})
 	// tx.Input = inputs
 
@@ -73,4 +70,14 @@ func NewTransaction(prevOutput []*TXOutput, to Address, value int) *Transaction 
 	//}
 	tx.Output = outputs
 	return &tx
+}
+
+func NewCoinbaseTX(value int, to Address) *Transaction {
+	txi := &TXInput{BytesToHash([]byte{}), -1, []byte{}}
+	txo := NewTXOutput(value, to)
+	var tx *Transaction
+	tx.Version = Version
+	tx.Input = []*TXInput{txi}
+	tx.Output = []*TXOutput{txo}
+	return tx
 }

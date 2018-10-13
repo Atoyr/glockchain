@@ -57,8 +57,8 @@ func NewBlockchain() *Blockchain {
 			return false
 		})
 		if !findData {
-			var t *Transaction
-			genesis := NewGenesisBlock(t)
+			var addr Address
+			genesis := NewGenesisBlock(NewCoinbaseTX(100, addr))
 			_, _, err := tx.Set(genesis.Hash.String(), string(genesis.Serialize()), nil)
 			_, _, err = tx.Set("l", genesis.Hash.String(), nil)
 			if err != nil {
