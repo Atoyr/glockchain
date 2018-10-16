@@ -3,6 +3,7 @@ package core
 import (
 	"bytes"
 	"crypto/ecdsa"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/gob"
 	"log"
@@ -12,7 +13,7 @@ import (
 // Transaction Data
 type Transaction struct {
 	Version   byte
-	BlockHash Hash
+	BlockHash []byte
 	Input     []*TXInput
 	Output    []*TXOutput
 }
@@ -36,7 +37,24 @@ func (tx *Transaction) Hash() []byte {
 }
 
 func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey) {
+	txCopy := tx.TrimmedCopy()
+	for vindex, _ := range txCopy.Input {
+		txCopy.Input[vindex].Signature = []byte{}
+		txCopyHash := tx.Hash()
+		r, s, err := ecdsa.Sign(rand.Reader, &privateKey, txCopyHash)
+		errorHandle(err)
+		signature := append(r.Bytes(), s.Bytes()...)
+		tx.Input[vindex].Signature = signature
+		txCopy.Input[vindex].Signature = nil
+	}
+}
 
+func (tx *Transaction) Verify() bool {
+	//txCopy := tx.TrimmedCopy()
+	// curve := elliptic.P256()
+	//for vindex, vin := range txCopy.Input {
+	//}
+	return true
 }
 
 func (tx *Transaction) TrimmedCopy() Transaction {
@@ -44,12 +62,12 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 	var outputs []*TXOutput
 
 	for _, vin := range tx.Input {
-		inputs = append(inputs, &TXInput{vin.PrevTXHash, vin.PrevTXIndex, nil})
+		inputs = append(inputs, &TXInput{vin.PrevTXHash, vin.PrevTXIndex, nil, nil})
 	}
 	for _, vout := range tx.Output {
-		outputs = append(outputs, &TXOutput{vout.Value, vout.PubKey})
+		outputs = append(outputs, &TXOutput{vout.Value, vout.PubKeyHash})
 	}
-	txCopy := Transaction{tx.Version, BytesToHash([]byte{}), inputs, outputs}
+	txCopy := Transaction{tx.Version, []byte{}, inputs, outputs}
 	return txCopy
 }
 
@@ -74,7 +92,7 @@ func NewTransaction(prevOutput []*TXOutput, to Address, value int) *Transaction 
 	}
 	var tx Transaction
 	tx.Version = Version
-	tx.BlockHash = BytesToHash([]byte{})
+	tx.BlockHash = []byte{}
 	// tx.Input = inputs
 
 	outputs := make([]*TXOutput, 2)
@@ -87,7 +105,7 @@ func NewTransaction(prevOutput []*TXOutput, to Address, value int) *Transaction 
 }
 
 func NewCoinbaseTX(value int, to Address) *Transaction {
-	txi := &TXInput{BytesToHash([]byte{}), -1, []byte{}}
+	txi := &TXInput{[]byte{}, -1, []byte{}, []byte{}}
 	txo := NewTXOutput(value, to)
 	var tx *Transaction
 	tx.Version = Version

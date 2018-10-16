@@ -5,9 +5,10 @@ import (
 )
 
 type TXInput struct {
-	PrevTXHash  Hash
+	PrevTXHash  []byte
 	PrevTXIndex int
 	Signature   []byte
+	PubKey      []byte
 }
 
 func NewTXInput(prevTX Transaction, prevTXIndex int) *TXInput {

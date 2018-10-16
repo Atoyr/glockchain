@@ -3,27 +3,26 @@ package core
 import (
 	"bytes"
 	"encoding/gob"
-	"fmt"
 	"log"
 )
 
-type Hash [HashLength]byte
+//type Hash [HashLength]byte
 type Address [AddressLength]byte
 type TXOutputs []TXOutput
 
-func BytesToHash(b []byte) Hash {
-	var h Hash
-	h.SetBytes(b)
-	return h
-}
-func (h Hash) Bytes() []byte  { return h[:] }
-func (h Hash) String() string { return fmt.Sprintf("%s", h) }
-func (h Hash) SetBytes(b []byte) {
-	if len(b) > len(h) {
-		b = b[len(b)-HashLength:]
-	}
-	copy(h[HashLength-len(b):], b)
-}
+// func BytesToHash(b []byte) Hash {
+// 	var h Hash
+// 	h.SetBytes(b)
+// 	return h
+// }
+// func (h Hash) Bytes() []byte  { return h[:] }
+// func (h Hash) String() string { return fmt.Sprintf("%s", h) }
+// func (h Hash) SetBytes(b []byte) {
+// 	if len(b) > len(h) {
+// 		b = b[len(b)-HashLength:]
+// 	}
+// 	copy(h[HashLength-len(b):], b)
+// }
 
 func BytesToAddress(b []byte) Address {
 	var a Address

@@ -8,7 +8,7 @@ import (
 )
 
 type BlockchainIterator struct {
-	currentHash Hash
+	currentHash []byte
 }
 
 func (bc *Blockchain) Iterator() *BlockchainIterator {
@@ -20,7 +20,7 @@ func (bci *BlockchainIterator) Next() *Block {
 	var block *Block
 	db := getBlockchainDatabase()
 	err := db.View(func(tx *buntdb.Tx) error {
-		encodedBlock, err := tx.Get(bci.currentHash.String())
+		encodedBlock, err := tx.Get(string(bci.currentHash))
 		errorHandle(err)
 		block = DeserializeBlock([]byte(encodedBlock))
 		return nil

@@ -10,18 +10,18 @@ import (
 const blocksBucket = "gobucket"
 
 type Blockchain struct {
-	tip Hash
+	tip []byte
 }
 
 func (bc *Blockchain) AddBlock(tx []*Transaction) {
-	var lastHash Hash
+	var lastHash []byte
 	db := getBlockchainDatabase()
 	err := db.View(func(tx *buntdb.Tx) error {
 		val, err := tx.Get("l")
 		if err != nil {
 			return err
 		}
-		lastHash = BytesToHash([]byte(val))
+		lastHash = []byte(val)
 		return nil
 	})
 	if err != nil {
@@ -31,8 +31,8 @@ func (bc *Blockchain) AddBlock(tx []*Transaction) {
 	newBlock := NewBlock(tx, lastHash)
 
 	err = db.Update(func(tx *buntdb.Tx) error {
-		_, _, err := tx.Set(newBlock.Hash.String(), string(newBlock.Serialize()), nil)
-		_, _, err = tx.Set("l", newBlock.Hash.String(), nil)
+		_, _, err := tx.Set(string(newBlock.Hash), string(newBlock.Serialize()), nil)
+		_, _, err = tx.Set("l", string(newBlock.Hash), nil)
 		if err != nil {
 			log.Panic(err)
 			os.Exit(1)
@@ -50,7 +50,7 @@ func NewBlockchain() *Blockchain {
 	db := getBlockchainDatabase()
 	var findData bool
 	findData = false
-	var tip Hash
+	var tip []byte
 	err := db.Update(func(tx *buntdb.Tx) error {
 		tx.Ascend("", func(k, v string) bool {
 			findData = true
@@ -59,8 +59,8 @@ func NewBlockchain() *Blockchain {
 		if !findData {
 			var addr Address
 			genesis := NewGenesisBlock(NewCoinbaseTX(100, addr))
-			_, _, err := tx.Set(genesis.Hash.String(), string(genesis.Serialize()), nil)
-			_, _, err = tx.Set("l", genesis.Hash.String(), nil)
+			_, _, err := tx.Set(string(genesis.Hash), string(genesis.Serialize()), nil)
+			_, _, err = tx.Set("l", string(genesis.Hash), nil)
 			if err != nil {
 				log.Fatal(err)
 				os.Exit(1)

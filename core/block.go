@@ -13,9 +13,9 @@ import (
 
 type Block struct {
 	Index        int64
-	PreviousHash Hash
+	PreviousHash []byte
 	Timestamp    int64
-	Hash         Hash
+	Hash         []byte
 	Nonce        int64
 	Transactions []*Transaction
 }
@@ -41,16 +41,16 @@ func (b *Block) ToByte() []byte {
 
 func (b *Block) SetHash() {
 	hash := sha256.Sum256(b.ToByte())
-	b.Hash = BytesToHash(hash[:])
+	b.Hash = hash[:]
 }
 
-func NewBlock(transactions []*Transaction, prevBlockHash Hash) *Block {
+func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
 	block := &Block{Timestamp: time.Now().Unix(), Transactions: transactions, PreviousHash: prevBlockHash}
 	block.SetHash()
 	return block
 }
 func NewGenesisBlock(tx *Transaction) *Block {
-	return NewBlock([]*Transaction{tx}, BytesToHash([]byte{}))
+	return NewBlock([]*Transaction{tx}, []byte{})
 }
 
 func (b *Block) Serialize() []byte {
