@@ -39,6 +39,20 @@ func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey) {
 
 }
 
+func (tx *Transaction) TrimmedCopy() Transaction {
+	var inputs []*TXInput
+	var outputs []*TXOutput
+
+	for _, vin := range tx.Input {
+		inputs = append(inputs, &TXInput{vin.PrevTXHash, vin.PrevTXIndex, nil})
+	}
+	for _, vout := range tx.Output {
+		outputs = append(outputs, &TXOutput{vout.Value, vout.PubKey})
+	}
+	txCopy := Transaction{tx.Version, BytesToHash([]byte{}), inputs, outputs}
+	return txCopy
+}
+
 func DeserializeTransaction(data []byte) Transaction {
 	var tx Transaction
 	decoder := gob.NewDecoder(bytes.NewReader(data))
