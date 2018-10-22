@@ -20,17 +20,10 @@ type Transaction struct {
 	Output    []*TXOutput
 }
 
-func (tx *Transaction) Serialize() []byte {
-	var encoded bytes.Buffer
-	enc := gob.NewEncoder(&encoded)
-	err := enc.Encode(tx)
-	if err != nil {
-		log.Panic(err)
-		os.Exit(1)
-	}
-	return encoded.Bytes()
+type UTXO struct {
+	TX *Transaction
+	Index int
 }
-
 func (tx *Transaction) Hash() []byte {
 	var hash [32]byte
 	txCopy := *tx
@@ -42,7 +35,7 @@ func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey) {
 	txCopy := tx.TrimmedCopy()
 	for vindex, _ := range txCopy.Input {
 		txCopy.Input[vindex].Signature = []byte{}
-		txCopyHash := tx.Hash()
+		txCopyHash := txCopy.Hash()
 		r, s, err := ecdsa.Sign(rand.Reader, &privateKey, txCopyHash)
 		errorHandle(err)
 		signature := append(r.Bytes(), s.Bytes()...)
@@ -92,6 +85,17 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 	return txCopy
 }
 
+func (tx *Transaction) Serialize() []byte {
+	var encoded bytes.Buffer
+	enc := gob.NewEncoder(&encoded)
+	err := enc.Encode(tx)
+	if err != nil {
+		log.Panic(err)
+		os.Exit(1)
+	}
+	return encoded.Bytes()
+}
+
 func DeserializeTransaction(data []byte) Transaction {
 	var tx Transaction
 	decoder := gob.NewDecoder(bytes.NewReader(data))
@@ -102,12 +106,12 @@ func DeserializeTransaction(data []byte) Transaction {
 	return tx
 }
 
-func NewTransaction(prevOutput []*TXOutput, to Address, value int) *Transaction {
+func NewTransaction(utxos []*UTXO, to Address, value int, returnValue int) *Transaction {
 	sumValue := 0
-	for _, txo := range prevOutput {
-		sumValue += txo.Value
+	for _, utxo := range utxos {
+		sumValue += utxo.TX[utxo.Index].Value
 	}
-	diffValue := sumValue - value
+	diffValue := sumValue - value - returnValue
 	if diffValue < 0 {
 		return nil
 	}
@@ -115,6 +119,10 @@ func NewTransaction(prevOutput []*TXOutput, to Address, value int) *Transaction 
 	tx.Version = Version
 	tx.BlockHash = []byte{}
 	// tx.Input = inputs
+	for _, prevO := range prevOutput {
+		var txin *TXInput
+		txin.PrevTXHash = prevO.
+	}
 
 	outputs := make([]*TXOutput, 2)
 	outputs = append(outputs, []*TXOutput{NewTXOutput(value, to)}...)
