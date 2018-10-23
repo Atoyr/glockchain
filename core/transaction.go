@@ -21,9 +21,10 @@ type Transaction struct {
 }
 
 type UTXO struct {
-	TX *Transaction
+	TX    *Transaction
 	Index int
 }
+
 func (tx *Transaction) Hash() []byte {
 	var hash [32]byte
 	txCopy := *tx
@@ -106,29 +107,30 @@ func DeserializeTransaction(data []byte) Transaction {
 	return tx
 }
 
-func NewTransaction(utxos []*UTXO, to Address, value int, returnValue int) *Transaction {
+func NewTransaction(utxos []*UTXO, from, to Address, value int, returnValue int) *Transaction {
+	var tx Transaction
+	tx.Input = make([]*TXInput, len(utxos))
 	sumValue := 0
 	for _, utxo := range utxos {
-		sumValue += utxo.TX[utxo.Index].Value
+		sumValue += utxo.TX.Output[utxo.Index].Value
+		var txin *TXInput
+		txin.PrevTXHash = utxo.TX.Hash()
+		txin.PrevTXIndex = utxo.Index
+		tx.Input = append(tx.Input, txin)
 	}
+
 	diffValue := sumValue - value - returnValue
 	if diffValue < 0 {
 		return nil
 	}
-	var tx Transaction
 	tx.Version = Version
 	tx.BlockHash = []byte{}
-	// tx.Input = inputs
-	for _, prevO := range prevOutput {
-		var txin *TXInput
-		txin.PrevTXHash = prevO.
-	}
 
 	outputs := make([]*TXOutput, 2)
 	outputs = append(outputs, []*TXOutput{NewTXOutput(value, to)}...)
-	//if diffValue > 0 {
-	//outputs = append(outputs, []*TXOutput{NewTXOutput(from, diffValue)}...)
-	//}
+	if diffValue > 0 {
+		outputs = append(outputs, []*TXOutput{NewTXOutput(diffValue, from)}...)
+	}
 	tx.Output = outputs
 	return &tx
 }
