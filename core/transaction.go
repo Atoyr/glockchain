@@ -12,7 +12,7 @@ import (
 	"os"
 )
 
-// Transaction Data
+// Transaction TX Data
 type Transaction struct {
 	Version   byte
 	BlockHash []byte
@@ -20,11 +20,13 @@ type Transaction struct {
 	Output    []*TXOutput
 }
 
+// UTXO UTXO Data (tryal)
 type UTXO struct {
 	TX    *Transaction
 	Index int
 }
 
+// Hash Hash to transaction
 func (tx *Transaction) Hash() []byte {
 	var hash [32]byte
 	txCopy := *tx
@@ -32,6 +34,7 @@ func (tx *Transaction) Hash() []byte {
 	return hash[:]
 }
 
+// Sign sign TX
 func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey) {
 	txCopy := tx.TrimmedCopy()
 	for vindex, _ := range txCopy.Input {
@@ -45,6 +48,7 @@ func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey) {
 	}
 }
 
+// Verify verify TX
 func (tx *Transaction) Verify() bool {
 	txCopy := tx.TrimmedCopy()
 	curve := elliptic.P256()
@@ -72,6 +76,7 @@ func (tx *Transaction) Verify() bool {
 	return true
 }
 
+// TrimmedCopy copy TX (not in TXI pubkey and Signature)
 func (tx *Transaction) TrimmedCopy() Transaction {
 	var inputs []*TXInput
 	var outputs []*TXOutput
@@ -86,6 +91,7 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 	return txCopy
 }
 
+// Serialize serialize tx
 func (tx *Transaction) Serialize() []byte {
 	var encoded bytes.Buffer
 	enc := gob.NewEncoder(&encoded)
@@ -97,6 +103,7 @@ func (tx *Transaction) Serialize() []byte {
 	return encoded.Bytes()
 }
 
+// DeserializeTransaction deserialize tx
 func DeserializeTransaction(data []byte) Transaction {
 	var tx Transaction
 	decoder := gob.NewDecoder(bytes.NewReader(data))
@@ -107,6 +114,7 @@ func DeserializeTransaction(data []byte) Transaction {
 	return tx
 }
 
+// NewTransaction create New TX
 func NewTransaction(utxos []*UTXO, from, to Address, value int, returnValue int) *Transaction {
 	var tx Transaction
 	tx.Input = make([]*TXInput, len(utxos))
@@ -135,6 +143,7 @@ func NewTransaction(utxos []*UTXO, from, to Address, value int, returnValue int)
 	return &tx
 }
 
+// NewCoinbaseTX Create New Coinbase TX
 func NewCoinbaseTX(value int, to Address) *Transaction {
 	txi := &TXInput{[]byte{}, -1, []byte{}, []byte{}}
 	txo := NewTXOutput(value, to)
