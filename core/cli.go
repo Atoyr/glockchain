@@ -43,15 +43,16 @@ func (cli *CLI) validateArgs() {
 func (cli *CLI) Run() {
 	//cli.validateArgs()
 	cli.printExecute()
+	cli.Bc = NewBlockchain()
 	addBlockCmd := flag.NewFlagSet("addblock", flag.ExitOnError)
-	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
+	printChainCmd := flag.NewFlagSet("pc", flag.ExitOnError)
 	createWalletCmd := flag.NewFlagSet("cw", flag.ExitOnError)
 	printWalletCmd := flag.NewFlagSet("pw", flag.ExitOnError)
 	var err error
 	switch os.Args[1] {
 	case "addblock":
 		err = addBlockCmd.Parse(os.Args[2:])
-	case "printchain":
+	case "pc":
 		err = printChainCmd.Parse(os.Args[2:])
 	case "cw":
 		err = createWalletCmd.Parse(os.Args[2:])

@@ -2,7 +2,6 @@ package core
 
 import (
 	"log"
-	"os"
 
 	"github.com/tidwall/buntdb"
 )
@@ -27,7 +26,6 @@ func (bci *BlockchainIterator) Next() *Block {
 	})
 	if err != nil {
 		log.Panic(err)
-		os.Exit(1)
 	}
 	bci.currentHash = block.PreviousHash
 	return block

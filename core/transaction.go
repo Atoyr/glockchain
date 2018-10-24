@@ -168,9 +168,9 @@ func NewTransaction(utxos []*UTXO, from, to Address, value int, returnValue int)
 func NewCoinbaseTX(value int, to Address) *Transaction {
 	txi := &TXInput{[]byte{}, -1, []byte{}, []byte{}}
 	txo := NewTXOutput(value, to)
-	var tx *Transaction
-	tx.Version = Version
+	var tx Transaction
+	tx.Version = 0x00
 	tx.Input = []*TXInput{txi}
 	tx.Output = []*TXOutput{txo}
-	return tx
+	return &tx
 }

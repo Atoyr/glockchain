@@ -56,6 +56,8 @@ func NewBlockchain() *Blockchain {
 			findData = true
 			return false
 		})
+		log.Println("hogehoge")
+		log.Println(findData)
 		if !findData {
 			var addr Address
 			genesis := NewGenesisBlock(NewCoinbaseTX(100, addr))
@@ -65,6 +67,7 @@ func NewBlockchain() *Blockchain {
 				log.Fatal(err)
 				os.Exit(1)
 			}
+			log.Println(genesis.Hash)
 			tip = genesis.Hash
 		}
 		return nil
