@@ -7,9 +7,11 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/gob"
+	"fmt"
 	"log"
 	"math/big"
 	"os"
+	"strings"
 )
 
 // Transaction TX Data
@@ -89,6 +91,25 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 	}
 	txCopy := Transaction{tx.Version, []byte{}, inputs, outputs}
 	return txCopy
+}
+
+func (tx *Transaction) String() string {
+	var lines []string
+	lines = append(lines, fmt.Sprintf("--- Transaction %x:", tx.Hash()))
+	for i, in := range tx.Input {
+		lines = append(lines, fmt.Sprintf("  Input %d:", i))
+		lines = append(lines, fmt.Sprintf("    PrevTX      %x", in.PrevTXHash))
+		lines = append(lines, fmt.Sprintf("    PrevTXIndex %d", in.PrevTXIndex))
+		lines = append(lines, fmt.Sprintf("    Signature   %x", in.Signature))
+		lines = append(lines, fmt.Sprintf("    PubKey      %x", in.PubKey))
+	}
+
+	for i, out := range tx.Output {
+		lines = append(lines, fmt.Sprintf("  Output %d:", i))
+		lines = append(lines, fmt.Sprintf("    Value       %d", out.Value))
+		lines = append(lines, fmt.Sprintf("    PubKeyHash  %x", out.PubKeyHash))
+	}
+	return strings.Join(lines, "\n")
 }
 
 // Serialize serialize tx
