@@ -57,10 +57,7 @@ func (b *Block) Serialize() []byte {
 	var result bytes.Buffer
 	encoder := gob.NewEncoder(&result)
 	err := encoder.Encode(b)
-	if err == nil {
-		log.Fatal(err)
-		os.Exit(1)
-	}
+	errorHandle(err)
 	return result.Bytes()
 }
 

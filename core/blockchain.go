@@ -1,10 +1,11 @@
 package core
 
 import (
+	"fmt"
 	"log"
 	"os"
 
-	"github.com/tidwall/buntdb"
+	"github.com/boltdb/bolt"
 )
 
 const blocksBucket = "gobucket"
@@ -13,63 +14,47 @@ type Blockchain struct {
 	tip []byte
 }
 
-func (bc *Blockchain) AddBlock(tx []*Transaction) {
-	var lastHash []byte
+func (bc *Blockchain) AddBlock(block *Block) {
+	//var lastHash []byte
 	db := getBlockchainDatabase()
-	err := db.View(func(tx *buntdb.Tx) error {
-		val, err := tx.Get("l")
-		if err != nil {
-			return err
-		}
-		lastHash = []byte(val)
-		return nil
-	})
-	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
-	}
-	newBlock := NewBlock(tx, lastHash)
+	err := db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(blocksBucket))
 
-	err = db.Update(func(tx *buntdb.Tx) error {
-		_, _, err := tx.Set(string(newBlock.Hash), string(newBlock.Serialize()), nil)
-		_, _, err = tx.Set("l", string(newBlock.Hash), nil)
-		if err != nil {
-			log.Panic(err)
-			os.Exit(1)
+		if b.Get(block.Hash) != nil {
+			return nil
 		}
-		bc.tip = newBlock.Hash
+
+		blockData := block.Serialize()
+		err := b.Put(block.Hash, blockData)
+		errorHandle(err)
+		//lastHash := b.Get([]byte("l"))
+		//lastBlockData := b.Get(lastHash)
+		//lastBlock := DeserializeBlock(lastBlockData)
 		return nil
+
 	})
-	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
-	}
+	errorHandle(err)
 }
 
-func NewBlockchain() *Blockchain {
-	db := getBlockchainDatabase()
-	var findData bool
-	findData = false
+func CreateBlockchain(address Address) *Blockchain {
+	if dbExists(dbFile) {
+		log.Println("Exist db file")
+		os.Exit(1)
+	}
 	var tip []byte
-	err := db.Update(func(tx *buntdb.Tx) error {
-		tx.Ascend("", func(k, v string) bool {
-			findData = true
-			return false
-		})
-		log.Println("hogehoge")
-		log.Println(findData)
-		if !findData {
-			var addr Address
-			genesis := NewGenesisBlock(NewCoinbaseTX(100, addr))
-			_, _, err := tx.Set(string(genesis.Hash), string(genesis.Serialize()), nil)
-			_, _, err = tx.Set("l", string(genesis.Hash), nil)
-			if err != nil {
-				log.Fatal(err)
-				os.Exit(1)
-			}
-			log.Println(genesis.Hash)
-			tip = genesis.Hash
-		}
+	cbtx := NewCoinbaseTX(100, address)
+	genesis := NewGenesisBlock(cbtx)
+	db := getBlockchainDatabase()
+	defer db.Close()
+	err := db.Update(func(tx *bolt.Tx) error {
+		b, err := tx.CreateBucket([]byte(blocksBucket))
+		errorHandle(err)
+		err = b.Put(genesis.Hash, genesis.Serialize())
+		errorHandle(err)
+		err = b.Put([]byte("l"), genesis.Hash)
+		errorHandle(err)
+		tip = genesis.Hash
+		log.Println(tip)
 		return nil
 	})
 	errorHandle(err)
@@ -77,8 +62,33 @@ func NewBlockchain() *Blockchain {
 	return &bc
 }
 
-func getBlockchainDatabase() *buntdb.DB {
-	db, err := buntdb.Open(dbFile)
+func GetBlockchain() *Blockchain {
+	var tip []byte
+	if dbExists(dbFile) == false {
+		fmt.Println("Not exist db file")
+		os.Exit(1)
+	}
+	db := getBlockchainDatabase()
+	defer db.Close()
+	err := db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(blocksBucket))
+		tip = b.Get([]byte("l"))
+		return nil
+	})
+	errorHandle(err)
+	bc := Blockchain{tip}
+	return &bc
+}
+
+func getBlockchainDatabase() *bolt.DB {
+	db, err := bolt.Open(dbFile, 0600, nil)
 	errorHandle(err)
 	return db
+}
+
+func dbExists(dbfile string) bool {
+	if _, err := os.Stat(dbFile); os.IsNotExist(err) {
+		return false
+	}
+	return true
 }

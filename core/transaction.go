@@ -172,5 +172,9 @@ func NewCoinbaseTX(value int, to Address) *Transaction {
 	tx.Version = 0x00
 	tx.Input = []*TXInput{txi}
 	tx.Output = []*TXOutput{txo}
+	wallets := NewWallets()
+	log.Println(to)
+	wallet := wallets.GetWallet(to)
+	tx.Sign(wallet.PrivateKey)
 	return &tx
 }

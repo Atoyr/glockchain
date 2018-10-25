@@ -27,14 +27,17 @@ type TXOutputs []TXOutput
 func BytesToAddress(b []byte) Address {
 	var a Address
 	a.SetBytes(b)
+	log.Printf("a %x", a)
 	return a
 }
 func (a Address) Bytes() []byte { return a[:] }
-func (a Address) SetBytes(b []byte) {
-	if len(b) > len(a) {
+func (a *Address) SetBytes(b []byte) {
+	if len(b) > AddressLength {
 		b = b[len(b)-AddressLength:]
 	}
-	copy(a[AddressLength-len(b):], b)
+	copy(a[:], b[:])
+	log.Printf("a %x", a)
+	log.Printf("b %x", b)
 }
 
 func (outs TXOutputs) Serialize() []byte {

@@ -3,7 +3,7 @@ package core
 import (
 	"log"
 
-	"github.com/tidwall/buntdb"
+	"github.com/boltdb/bolt"
 )
 
 type BlockchainIterator struct {
@@ -11,17 +11,21 @@ type BlockchainIterator struct {
 }
 
 func (bc *Blockchain) Iterator() *BlockchainIterator {
-	bci := &BlockchainIterator{bc.tip}
-	return bci
+	bci := BlockchainIterator{bc.tip}
+	return &bci
 }
 
 func (bci *BlockchainIterator) Next() *Block {
 	var block *Block
 	db := getBlockchainDatabase()
-	err := db.View(func(tx *buntdb.Tx) error {
-		encodedBlock, err := tx.Get(string(bci.currentHash))
-		errorHandle(err)
-		block = DeserializeBlock([]byte(encodedBlock))
+	defer db.Close()
+	log.Println(bci.currentHash)
+	err := db.View(func(tx *bolt.Tx) error {
+		log.Println(bci.currentHash)
+		b := tx.Bucket([]byte(blocksBucket))
+		log.Println(bci.currentHash)
+		encodedBlock := b.Get(bci.currentHash)
+		block = DeserializeBlock(encodedBlock)
 		return nil
 	})
 	if err != nil {

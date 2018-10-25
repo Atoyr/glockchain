@@ -21,6 +21,7 @@ const dbFile = "glockchains.db"
 
 func errorHandle(err error) {
 	if err != nil {
+		log.Println(err)
 		log.Fatal(err)
 	}
 }

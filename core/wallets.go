@@ -36,8 +36,11 @@ func (ws *Wallets) GetAddresses() []string {
 	return addresses
 }
 
-func (ws Wallets) GetWallet(address string) Wallet {
-	return *ws.Wallets[address]
+func (ws Wallets) GetWallet(address Address) Wallet {
+	addr := fmt.Sprintf("%x", address.Bytes())
+	log.Println(address)
+	log.Println(addr)
+	return *ws.Wallets[addr]
 }
 
 func (ws Wallets) SaveToFile() {

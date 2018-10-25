@@ -3,6 +3,7 @@ package core
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -43,13 +44,17 @@ func (cli *CLI) validateArgs() {
 func (cli *CLI) Run() {
 	//cli.validateArgs()
 	cli.printExecute()
-	cli.Bc = NewBlockchain()
+	createBlockchainCmd := flag.NewFlagSet("create", flag.ExitOnError)
 	addBlockCmd := flag.NewFlagSet("addblock", flag.ExitOnError)
 	printChainCmd := flag.NewFlagSet("pc", flag.ExitOnError)
 	createWalletCmd := flag.NewFlagSet("cw", flag.ExitOnError)
 	printWalletCmd := flag.NewFlagSet("pw", flag.ExitOnError)
+
+	createBlockchainAddress := createBlockchainCmd.String("address", "", "The address tosend genesis block reward to")
 	var err error
 	switch os.Args[1] {
+	case "create":
+		err = createBlockchainCmd.Parse(os.Args[2:])
 	case "addblock":
 		err = addBlockCmd.Parse(os.Args[2:])
 	case "pc":
@@ -65,6 +70,9 @@ func (cli *CLI) Run() {
 	if err != nil {
 		os.Exit(1)
 	}
+	if createBlockchainCmd.Parsed() {
+		cli.createBlockchain(*createBlockchainAddress)
+	}
 	if printChainCmd.Parsed() {
 		cli.printChain()
 	}
@@ -76,11 +84,22 @@ func (cli *CLI) Run() {
 	}
 }
 
+func (cli *CLI) createBlockchain(address string) {
+	log.Println(address)
+	a := []byte(address)
+	CreateBlockchain(BytesToAddress(a))
+}
+
 func (cli *CLI) printChain() {
+	cli.Bc = GetBlockchain()
 	bci := cli.Bc.Iterator()
 	for {
+		log.Println("hoge")
 		block := bci.Next()
 		fmt.Printf("Hash: %x \n", block.Hash)
+		for _, tx := range block.Transactions {
+			fmt.Println(tx)
+		}
 		fmt.Println()
 		if len(block.PreviousHash) == 0 {
 			break
