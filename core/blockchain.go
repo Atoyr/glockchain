@@ -8,8 +8,6 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-const blocksBucket = "gobucket"
-
 type Blockchain struct {
 	tip []byte
 }

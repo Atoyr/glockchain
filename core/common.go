@@ -13,6 +13,10 @@ const walletFile = "wallet.dat"
 
 const dbFile = "glockchains.db"
 
+const blocksBucket = "glockchainbucket"
+const utxoBucket = "utxobucket"
+const txpoolBucket = "txpoolbucket"
+
 func errorHandle(err error) {
 	if err != nil {
 		log.Println(err)
