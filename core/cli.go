@@ -43,6 +43,7 @@ func (cli *CLI) validateArgs() {
 func (cli *CLI) Run() {
 	//cli.validateArgs()
 	cli.printExecute()
+	initializeBlockchainCmd := flag.NewFlagSet("init", flag.ExitOnError)
 	createBlockchainCmd := flag.NewFlagSet("create", flag.ExitOnError)
 	addBlockCmd := flag.NewFlagSet("addblock", flag.ExitOnError)
 	printChainCmd := flag.NewFlagSet("pc", flag.ExitOnError)
@@ -52,6 +53,8 @@ func (cli *CLI) Run() {
 	createBlockchainAddress := createBlockchainCmd.String("address", "", "The address tosend genesis block reward to")
 	var err error
 	switch os.Args[1] {
+	case "init":
+		err = initializeBlockchainCmd.Parse(os.Args[2:])
 	case "create":
 		err = createBlockchainCmd.Parse(os.Args[2:])
 	case "addblock":
@@ -69,6 +72,9 @@ func (cli *CLI) Run() {
 	if err != nil {
 		os.Exit(1)
 	}
+	if initializeBlockchainCmd.Parsed() {
+		cli.initializeBlockchain()
+	}
 	if createBlockchainCmd.Parsed() {
 		cli.createBlockchain(*createBlockchainAddress)
 	}
@@ -83,6 +89,26 @@ func (cli *CLI) Run() {
 	}
 }
 
+func (cli *CLI) initializeBlockchain() {
+	wallets := NewWallets()
+	address := wallets.CreateWallet()
+	wallets.SaveToFile()
+	a := []byte(address)
+	CreateBlockchain(a)
+	fmt.Printf("address: %s\n", address)
+	cli.Bc = GetBlockchain()
+	bci := cli.Bc.Iterator()
+	for {
+		block := bci.Next()
+		for _, tx := range block.Transactions {
+			fmt.Println(tx)
+		}
+		fmt.Println()
+		if len(block.PreviousHash) == 0 {
+			break
+		}
+	}
+}
 func (cli *CLI) createBlockchain(address string) {
 	a := []byte(address)
 	CreateBlockchain(a)
