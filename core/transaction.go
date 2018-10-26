@@ -22,12 +22,6 @@ type Transaction struct {
 	Output    []*TXOutput
 }
 
-// UTXO UTXO Data (tryal)
-type UTXO struct {
-	TX    *Transaction
-	Index int
-}
-
 // Hash Hash to transaction
 func (tx *Transaction) Hash() []byte {
 	var hash [32]byte
