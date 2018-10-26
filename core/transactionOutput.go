@@ -8,7 +8,7 @@ type TXOutput struct {
 }
 
 func (out *TXOutput) Lock(address Address) {
-	pubKeyHash := util.Base58Decode(address.Bytes())
+	pubKeyHash := util.Base58Decode(address)
 	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
 	out.PubKeyHash = pubKeyHash
 }

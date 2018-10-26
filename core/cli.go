@@ -3,7 +3,6 @@ package core
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 )
 
@@ -85,18 +84,15 @@ func (cli *CLI) Run() {
 }
 
 func (cli *CLI) createBlockchain(address string) {
-	log.Println(address)
 	a := []byte(address)
-	CreateBlockchain(BytesToAddress(a))
+	CreateBlockchain(a)
 }
 
 func (cli *CLI) printChain() {
 	cli.Bc = GetBlockchain()
 	bci := cli.Bc.Iterator()
 	for {
-		log.Println("hoge")
 		block := bci.Next()
-		fmt.Printf("Hash: %x \n", block.Hash)
 		for _, tx := range block.Transactions {
 			fmt.Println(tx)
 		}

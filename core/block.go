@@ -50,7 +50,8 @@ func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
 	return block
 }
 func NewGenesisBlock(tx *Transaction) *Block {
-	return NewBlock([]*Transaction{tx}, []byte{})
+	block := NewBlock([]*Transaction{tx}, []byte{})
+	return block
 }
 
 func (b *Block) Serialize() []byte {

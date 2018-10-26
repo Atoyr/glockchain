@@ -54,7 +54,6 @@ func CreateBlockchain(address Address) *Blockchain {
 		err = b.Put([]byte("l"), genesis.Hash)
 		errorHandle(err)
 		tip = genesis.Hash
-		log.Println(tip)
 		return nil
 	})
 	errorHandle(err)

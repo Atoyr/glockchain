@@ -7,7 +7,7 @@ import (
 )
 
 //type Hash [HashLength]byte
-type Address [AddressLength]byte
+type Address []byte
 type TXOutputs []TXOutput
 
 // func BytesToHash(b []byte) Hash {
@@ -24,22 +24,19 @@ type TXOutputs []TXOutput
 // 	copy(h[HashLength-len(b):], b)
 // }
 
-func BytesToAddress(b []byte) Address {
-	var a Address
-	a.SetBytes(b)
-	log.Printf("a %x", a)
-	return a
-}
-func (a Address) Bytes() []byte { return a[:] }
-func (a *Address) SetBytes(b []byte) {
-	if len(b) > AddressLength {
-		b = b[len(b)-AddressLength:]
-	}
-	copy(a[:], b[:])
-	log.Printf("a %x", a)
-	log.Printf("b %x", b)
-}
-
+//func BytesToAddress(b []byte) Address {
+//var a Address
+//a.SetBytes(b)
+//log.Printf("a %x", a)
+//return a
+//}
+//func (a Address) Bytes() []byte { return a[:] }
+//func (a *Address) SetBytes(b []byte) {
+//copy(&a[:], b[:])
+//log.Printf("a %x", a)
+//log.Printf("b %x", b)
+//}
+//
 func (outs TXOutputs) Serialize() []byte {
 	var buffer bytes.Buffer
 	enc := gob.NewEncoder(&buffer)

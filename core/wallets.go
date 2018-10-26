@@ -36,10 +36,8 @@ func (ws *Wallets) GetAddresses() []string {
 	return addresses
 }
 
-func (ws Wallets) GetWallet(address Address) Wallet {
-	addr := fmt.Sprintf("%x", address.Bytes())
-	log.Println(address)
-	log.Println(addr)
+func (ws Wallets) GetWallet(address []byte) Wallet {
+	addr := string(address)
 	return *ws.Wallets[addr]
 }
 
