@@ -3,6 +3,7 @@ package core
 import (
 	"log"
 	"os"
+	"strings"
 
 	"github.com/boltdb/bolt"
 )
@@ -43,10 +44,18 @@ func (up *UTXOPool) AddUTXO(utxo *UTXO) {
 	err := db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(utxoBucket))
 		errorHandle(err)
-		err = b.Put(utxo.Transaction.Hash(), transaction.Serialize())
+		err = b.Put(utxo.Hash(), utxo.Serialize())
 		errorHandle(err)
 		return nil
 	})
 	errorHandle(err)
-	txp.Pool = append(txp.Pool, transaction)
+	up.Pool = append(up.Pool, utxo)
+}
+
+func (up *UTXOPool) String() string {
+	var lines []string
+	for _, utxo := range up.Pool {
+		lines = append(lines, utxo.String())
+	}
+	return strings.Join(lines, "\n")
 }

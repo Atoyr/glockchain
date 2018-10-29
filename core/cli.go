@@ -49,6 +49,7 @@ func (cli *CLI) Run() {
 	printChainCmd := flag.NewFlagSet("pc", flag.ExitOnError)
 	createWalletCmd := flag.NewFlagSet("cw", flag.ExitOnError)
 	printWalletCmd := flag.NewFlagSet("pw", flag.ExitOnError)
+	printUtxoCmd := flag.NewFlagSet("pu", flag.ExitOnError)
 
 	createBlockchainAddress := createBlockchainCmd.String("address", "", "The address tosend genesis block reward to")
 	var err error
@@ -65,6 +66,8 @@ func (cli *CLI) Run() {
 		err = createWalletCmd.Parse(os.Args[2:])
 	case "pw":
 		err = printWalletCmd.Parse(os.Args[2:])
+	case "pu":
+		err = printUtxoCmd.Parse(os.Args[2:])
 	default:
 		cli.printUsage()
 		os.Exit(1)
@@ -86,6 +89,9 @@ func (cli *CLI) Run() {
 	}
 	if printWalletCmd.Parsed() {
 		cli.printWallets()
+	}
+	if printUtxoCmd.Parsed() {
+		cli.printUtxo()
 	}
 }
 
@@ -141,4 +147,9 @@ func (cli *CLI) printWallets() {
 	for address := range wallets.Wallets {
 		fmt.Printf("address: %s\n", address)
 	}
+}
+
+func (cli *CLI) printUtxo() {
+	up := GetUTXOPool()
+	fmt.Println(up.String())
 }

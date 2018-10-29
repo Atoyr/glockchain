@@ -132,7 +132,6 @@ func DeserializeTransaction(data []byte) Transaction {
 // NewTransaction create New TX
 func NewTransaction(utxos []*UTXO, from, to Address, value int, returnValue int) *Transaction {
 	var tx Transaction
-	txp := GetTransactionPool()
 	tx.Input = make([]*TXInput, len(utxos))
 	sumValue := 0
 	for _, utxo := range utxos {
@@ -156,7 +155,13 @@ func NewTransaction(utxos []*UTXO, from, to Address, value int, returnValue int)
 		outputs = append(outputs, []*TXOutput{NewTXOutput(diffValue, from)}...)
 	}
 	tx.Output = outputs
+
+	txp := GetTransactionPool()
+	up := GetUTXOPool()
 	txp.AddTransaction(&tx)
+	for _, utxo := range utxos {
+		up.AddUTXO(utxo)
+	}
 	return &tx
 }
 
