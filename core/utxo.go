@@ -26,7 +26,9 @@ func (utxo *UTXO) Hash() []byte {
 func (utxo *UTXO) String() string {
 	var lines []string
 	lines = append(lines, fmt.Sprintf("--- UTXO %x:", utxo.Hash()))
-	lines = append(lines, fmt.Sprintf("  Output Index %d", utxo.Index))
+	lines = append(lines, fmt.Sprintf("  Output "))
+	lines = append(lines, fmt.Sprintf("  TX    %x", utxo.TX.Hash()))
+	lines = append(lines, fmt.Sprintf("  Index %d", utxo.Index))
 	lines = append(lines, fmt.Sprintf("    Value       %d", utxo.TX.Output[utxo.Index].Value))
 	lines = append(lines, fmt.Sprintf("    PubKeyHash  %x", utxo.TX.Output[utxo.Index].PubKeyHash))
 	return strings.Join(lines, "\n")

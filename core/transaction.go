@@ -90,6 +90,8 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 func (tx *Transaction) String() string {
 	var lines []string
 	lines = append(lines, fmt.Sprintf("--- Transaction %x:", tx.Hash()))
+	lines = append(lines, fmt.Sprintf("--- version %x:", tx.Version))
+	lines = append(lines, fmt.Sprintf("--- BlockHash %x:", tx.BlockHash))
 	for i, in := range tx.Input {
 		lines = append(lines, fmt.Sprintf("  Input %d:", i))
 		lines = append(lines, fmt.Sprintf("    PrevTX      %x", in.PrevTXHash))

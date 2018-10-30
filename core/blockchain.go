@@ -43,7 +43,6 @@ func CreateBlockchain(address Address) *Blockchain {
 	cbtx := NewCoinbaseTX(100, address)
 	genesis := NewGenesisBlock(cbtx)
 	db := getBlockchainDatabase()
-	defer db.Close()
 	err := db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucket([]byte(blocksBucket))
 		errorHandle(err)
@@ -55,6 +54,12 @@ func CreateBlockchain(address Address) *Blockchain {
 		return nil
 	})
 	errorHandle(err)
+	db.Close()
+
+	up := GetUTXOPool()
+	utxo := UTXO{genesis.Transactions[0], 0}
+	up.AddUTXO(&utxo)
+
 	bc := Blockchain{tip}
 	return &bc
 }

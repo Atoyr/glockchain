@@ -12,6 +12,10 @@ type UTXOPool struct {
 	Pool []*UTXO
 }
 
+//func CreateUTXOPool() *UTXOPool {
+
+//}
+
 func GetUTXOPool() *UTXOPool {
 	var up UTXOPool
 	if dbExists(dbFile) == false {
@@ -20,7 +24,7 @@ func GetUTXOPool() *UTXOPool {
 	}
 	db := getBlockchainDatabase()
 	defer db.Close()
-	err := db.View(func(tx *bolt.Tx) error {
+	err := db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(utxoBucket))
 		errorHandle(err)
 		c := b.Cursor()
@@ -56,6 +60,7 @@ func (up *UTXOPool) String() string {
 	var lines []string
 	for _, utxo := range up.Pool {
 		lines = append(lines, utxo.String())
+		lines = append(lines, utxo.TX.String())
 	}
 	return strings.Join(lines, "\n")
 }
