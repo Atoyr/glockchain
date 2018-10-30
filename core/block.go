@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/gob"
+	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -61,4 +63,16 @@ func DeserializeBlock(d []byte) *Block {
 		os.Exit(1)
 	}
 	return &block
+}
+func (b *Block) String() string {
+	var lines []string
+	lines = append(lines, fmt.Sprintf("Block : %x", b.Hash))
+	lines = append(lines, fmt.Sprintf("index : %d", b.Index))
+	lines = append(lines, fmt.Sprintf("prev : %x", b.PreviousHash))
+	lines = append(lines, fmt.Sprintf("timestamp : %x", b.Timestamp))
+	lines = append(lines, fmt.Sprintf("nonce : %d", b.Nonce))
+	for _, tx := range b.Transactions {
+		lines = append(lines, tx.String())
+	}
+	return strings.Join(lines, "\n")
 }

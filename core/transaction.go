@@ -176,7 +176,6 @@ func NewCoinbaseTX(value int, to Address) *Transaction {
 	tx.Input = []*TXInput{txi}
 	tx.Output = []*TXOutput{txo}
 	wallets := NewWallets()
-	log.Println(to)
 	wallet := wallets.GetWallet(to)
 	tx.Sign(wallet.PrivateKey)
 	return &tx

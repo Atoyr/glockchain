@@ -102,18 +102,7 @@ func (cli *CLI) initializeBlockchain() {
 	a := []byte(address)
 	CreateBlockchain(a)
 	fmt.Printf("address: %s\n", address)
-	cli.Bc = GetBlockchain()
-	bci := cli.Bc.Iterator()
-	for {
-		block := bci.Next()
-		for _, tx := range block.Transactions {
-			fmt.Println(tx)
-		}
-		fmt.Println()
-		if len(block.PreviousHash) == 0 {
-			break
-		}
-	}
+	cli.printChain()
 }
 func (cli *CLI) createBlockchain(address string) {
 	a := []byte(address)
@@ -125,9 +114,7 @@ func (cli *CLI) printChain() {
 	bci := cli.Bc.Iterator()
 	for {
 		block := bci.Next()
-		for _, tx := range block.Transactions {
-			fmt.Println(tx)
-		}
+		fmt.Println(block)
 		fmt.Println()
 		if len(block.PreviousHash) == 0 {
 			break
@@ -151,5 +138,5 @@ func (cli *CLI) printWallets() {
 
 func (cli *CLI) printUtxo() {
 	up := GetUTXOPool()
-	fmt.Println(up.String())
+	fmt.Println(up)
 }
