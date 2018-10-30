@@ -7,8 +7,6 @@ import (
 	"log"
 	"os"
 	"time"
-
-	"github.com/atoyr/glockchain/util"
 )
 
 type Block struct {
@@ -28,25 +26,17 @@ func (b *Block) ToTransactionsByte() []byte {
 	return bytes
 }
 
-func (b *Block) ToByte() []byte {
-	bytes := make([]byte, 0, 10)
-	bytes = append(bytes, util.Interface2bytes(b.Index)...)
-	bytes = append(bytes, util.Interface2bytes(b.PreviousHash)...)
-	bytes = append(bytes, util.Interface2bytes(b.Timestamp)...)
-	bytes = append(bytes, util.Interface2bytes(b.Hash)...)
-	bytes = append(bytes, util.Interface2bytes(b.Nonce)...)
-	bytes = append(bytes, b.ToTransactionsByte()...)
-	return bytes
-}
-
 func (b *Block) SetHash() {
-	hash := sha256.Sum256(b.ToByte())
+	hash := sha256.Sum256(b.Serialize())
 	b.Hash = hash[:]
 }
 
 func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
 	block := &Block{Timestamp: time.Now().Unix(), Transactions: transactions, PreviousHash: prevBlockHash}
 	block.SetHash()
+	for _, tx := range block.Transactions {
+		tx.BlockHash = block.Hash
+	}
 	return block
 }
 func NewGenesisBlock(tx *Transaction) *Block {
