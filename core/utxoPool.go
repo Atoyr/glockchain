@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/atoyr/glockchain/util"
 	"github.com/boltdb/bolt"
 )
 
@@ -48,7 +49,7 @@ func (up *UTXOPool) AddUTXO(utxo *UTXO) {
 	err := db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(utxoBucket))
 		errorHandle(err)
-		err = b.Put(utxo.Hash(), utxo.Serialize())
+		err = b.Put(append(utxo.TX.Hash(), util.Int2bytes(utxo.Index, 8)...), utxo.Serialize())
 		errorHandle(err)
 		return nil
 	})
@@ -56,7 +57,7 @@ func (up *UTXOPool) AddUTXO(utxo *UTXO) {
 	up.Pool = append(up.Pool, utxo)
 }
 
-func (up *UTXOPool) GetUTXO(hash []byte) *UTXO {
+func (up *UTXOPool) GetUTXO(txhash []byte, index int) *UTXO {
 	if dbExists(dbFile) == false {
 		log.Println("Not exists db file")
 		os.Exit(1)
@@ -66,7 +67,7 @@ func (up *UTXOPool) GetUTXO(hash []byte) *UTXO {
 	defer db.Close()
 	err := db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(utxoBucket))
-		encodeUtxo := b.Get(hash)
+		encodeUtxo := b.Get(append(txhash, util.Int2bytes(index, 8)...))
 		utxo = DeserializeUtxo(encodeUtxo)
 		return nil
 	})

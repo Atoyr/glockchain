@@ -1,6 +1,7 @@
 package core
 
 import (
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"os"
@@ -52,6 +53,8 @@ func (cli *CLI) Run() {
 	printUtxoCmd := flag.NewFlagSet("pu", flag.ExitOnError)
 
 	createBlockchainAddress := createBlockchainCmd.String("address", "", "The address tosend genesis block reward to")
+	printUtxoTxhash := printUtxoCmd.String("txhash", "", "The address tosend genesis block reward to")
+	index := printUtxoCmd.Int("index", 0, "The address tosend genesis block reward to")
 	var err error
 	switch os.Args[1] {
 	case "init":
@@ -91,7 +94,13 @@ func (cli *CLI) Run() {
 		cli.printWallets()
 	}
 	if printUtxoCmd.Parsed() {
-		cli.printUtxo()
+		if printUtxoTxhash != nil && index != nil {
+			up := GetUTXOPool()
+			b, _ := hex.DecodeString(*printUtxoTxhash)
+			fmt.Println(up.GetUTXO(b, *index))
+		} else {
+			cli.printUtxo()
+		}
 	}
 }
 
