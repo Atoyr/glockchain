@@ -56,6 +56,24 @@ func (up *UTXOPool) AddUTXO(utxo *UTXO) {
 	up.Pool = append(up.Pool, utxo)
 }
 
+func (up *UTXOPool) GetUTXO(hash []byte) *UTXO {
+	if dbExists(dbFile) == false {
+		log.Println("Not exists db file")
+		os.Exit(1)
+	}
+	var utxo UTXO
+	db := getBlockchainDatabase()
+	defer db.Close()
+	err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(utxoBucket))
+		encodeUtxo := b.Get(hash)
+		utxo = DeserializeUtxo(encodeUtxo)
+		return nil
+	})
+	errorHandle(err)
+	return &utxo
+}
+
 func (up *UTXOPool) String() string {
 	var lines []string
 	for _, utxo := range up.Pool {
