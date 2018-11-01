@@ -1,10 +1,22 @@
 package core
 
-import "github.com/atoyr/glockchain/util"
+import (
+	"crypto/sha256"
+
+	"github.com/atoyr/glockchain/util"
+)
 
 type TXOutput struct {
 	Value      int
 	PubKeyHash []byte
+}
+
+func (txo *TXOutput) Hash() []byte {
+	var b []byte
+	b = append(b, util.Interface2bytes(txo.Value)...)
+	b = append(b, txo.PubKeyHash...)
+	hash := sha256.Sum256(b)
+	return hash[:]
 }
 
 func (out *TXOutput) Lock(address Address) {

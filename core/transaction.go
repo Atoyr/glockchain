@@ -24,9 +24,19 @@ type Transaction struct {
 
 // Hash Hash to transaction
 func (tx *Transaction) Hash() []byte {
-	var hash [32]byte
+	var b []byte
 	txCopy := *tx
-	hash = sha256.Sum256(txCopy.Serialize())
+	b = append(b, txCopy.Version)
+	b = append(b, txCopy.BlockHash...)
+	for _, in := range txCopy.Input {
+		b = append(b, in.Hash()...)
+	}
+	for _, out := range txCopy.Output {
+		b = append(b, out.Hash()...)
+	}
+
+	var hash [32]byte
+	hash = sha256.Sum256(b)
 	return hash[:]
 }
 
@@ -84,6 +94,20 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 		outputs = append(outputs, &TXOutput{vout.Value, vout.PubKeyHash})
 	}
 	txCopy := Transaction{tx.Version, []byte{}, inputs, outputs}
+	return txCopy
+}
+
+func (tx Transaction) Copy() Transaction {
+	//var inputs []*TXInput
+	//var outputs []*TXOutput
+
+	// for _, vin := range tx.Input {
+	// inputs = append(inputs, &TXInput{vin.PrevTXHash, vin.PrevTXIndex, vin.Signature, vin.PubKey})
+	// }
+	// for _, vout := range tx.Output {
+	// outputs = append(outputs, &TXOutput{vout.Value, vout.PubKeyHash})
+	// }
+	txCopy := Transaction{tx.Version, []byte{}, nil, nil}
 	return txCopy
 }
 
