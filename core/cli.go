@@ -94,7 +94,7 @@ func (cli *CLI) Run() {
 		cli.printWallets()
 	}
 	if printUtxoCmd.Parsed() {
-		if printUtxoTxhash != nil && index != nil {
+		if *printUtxoTxhash != "" {
 			up := GetUTXOPool()
 			b, _ := hex.DecodeString(*printUtxoTxhash)
 			fmt.Println(up.GetUTXO(b, *index))
