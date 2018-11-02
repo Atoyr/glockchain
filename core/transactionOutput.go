@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"crypto/sha256"
 
 	"github.com/atoyr/glockchain/util"
@@ -19,10 +20,13 @@ func (txo *TXOutput) Hash() []byte {
 	return hash[:]
 }
 
-func (out *TXOutput) Lock(address Address) {
+func (txo *TXOutput) Lock(address Address) {
 	pubKeyHash := util.Base58Decode(address)
 	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
-	out.PubKeyHash = pubKeyHash
+	txo.PubKeyHash = pubKeyHash
+}
+func (txo *TXOutput) IsLockedWithKey(pubKeyHash []byte) bool {
+	return bytes.Compare(txo.PubKeyHash, pubKeyHash) == 0
 }
 func NewTXOutput(value int, address Address) *TXOutput {
 	txo := &TXOutput{value, nil}
