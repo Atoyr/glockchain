@@ -101,21 +101,22 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 
 func (tx *Transaction) String() string {
 	var lines []string
-	lines = append(lines, fmt.Sprintf("--- Transaction %x:", tx.Hash()))
-	lines = append(lines, fmt.Sprintf("--- version %x:", tx.Version))
-	lines = append(lines, fmt.Sprintf("--- BlockHash %x:", tx.BlockHash))
+	lines = append(lines, fmt.Sprintf("Transaction  : %x", tx.Hash()))
+	lines = append(lines, fmt.Sprintf("  version    : %x", tx.Version))
+	lines = append(lines, fmt.Sprintf("  BlockHash  : %x", tx.BlockHash))
+	lines = append(lines, fmt.Sprintf("  Inputs     : %d", len(tx.Input)))
 	for i, in := range tx.Input {
-		lines = append(lines, fmt.Sprintf("  Input %d:", i))
-		lines = append(lines, fmt.Sprintf("    PrevTX      %x", in.PrevTXHash))
-		lines = append(lines, fmt.Sprintf("    PrevTXIndex %d", in.PrevTXIndex))
-		lines = append(lines, fmt.Sprintf("    Signature   %x", in.Signature))
-		lines = append(lines, fmt.Sprintf("    PubKey      %x", in.PubKey))
+		lines = append(lines, fmt.Sprintf("    Input %d", i))
+		lines = append(lines, fmt.Sprintf("      PrevTX         : %x", in.PrevTXHash))
+		lines = append(lines, fmt.Sprintf("      PrevTXIndex    : %d", in.PrevTXIndex))
+		lines = append(lines, fmt.Sprintf("      Signature      : %x", in.Signature))
+		lines = append(lines, fmt.Sprintf("      PubKey         : %x", in.PubKey))
 	}
-
+	lines = append(lines, fmt.Sprintf("  Outputs    : %d", len(tx.Output)))
 	for i, out := range tx.Output {
-		lines = append(lines, fmt.Sprintf("  Output %d:", i))
-		lines = append(lines, fmt.Sprintf("    Value       %d", out.Value))
-		lines = append(lines, fmt.Sprintf("    PubKeyHash  %x", out.PubKeyHash))
+		lines = append(lines, fmt.Sprintf("    Output %d", i))
+		lines = append(lines, fmt.Sprintf("      Value          : %d", out.Value))
+		lines = append(lines, fmt.Sprintf("      PubKeyHash     : %x", out.PubKeyHash))
 	}
 	return strings.Join(lines, "\n")
 }
