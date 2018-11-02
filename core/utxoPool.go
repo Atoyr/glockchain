@@ -1,28 +1,31 @@
 package core
 
 import (
+	"encoding/hex"
 	"log"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/atoyr/glockchain/util"
 	"github.com/boltdb/bolt"
 )
 
 type UTXOPool struct {
-	Pool []*UTXO
+	Pool map[string]*UTXO
 }
 
-//func CreateUTXOPool() *UTXOPool {
+var utxopool *UTXOPool
+var once sync.Once
 
-//}
-
-func GetUTXOPool() *UTXOPool {
+func NewUTXOPool() *UTXOPool {
 	var up UTXOPool
+	up.Pool = make(map[string]*UTXO)
 	if dbExists(dbFile) == false {
 		log.Println("Not exists db file")
 		os.Exit(1)
 	}
+
 	db := getBlockchainDatabase()
 	defer db.Close()
 	err := db.Update(func(tx *bolt.Tx) error {
@@ -30,13 +33,21 @@ func GetUTXOPool() *UTXOPool {
 		errorHandle(err)
 		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
+			key := hex.EncodeToString(k)
 			utxo := DeserializeUtxo(v)
-			up.Pool = append(up.Pool, &utxo)
+			up.Pool[key] = &utxo
 		}
 		return nil
 	})
 	errorHandle(err)
 	return &up
+}
+
+func GetUTXOPool() *UTXOPool {
+	once.Do(func() {
+		utxopool = NewUTXOPool()
+	})
+	return utxopool
 }
 
 func (up *UTXOPool) AddUTXO(utxo *UTXO) {
@@ -54,7 +65,7 @@ func (up *UTXOPool) AddUTXO(utxo *UTXO) {
 		return nil
 	})
 	errorHandle(err)
-	up.Pool = append(up.Pool, utxo)
+	up.Pool[hex.EncodeToString(utxo.Key())] = utxo
 }
 
 func (up *UTXOPool) GetUTXO(txhash []byte, index int) *UTXO {

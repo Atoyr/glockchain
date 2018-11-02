@@ -8,6 +8,8 @@ import (
 	"log"
 	"os"
 	"strings"
+
+	"github.com/atoyr/glockchain/util"
 )
 
 // UTXO UTXO Data (tryal)
@@ -32,6 +34,10 @@ func (utxo *UTXO) String() string {
 	lines = append(lines, fmt.Sprintf("    Value       %d", utxo.TX.Output[utxo.Index].Value))
 	lines = append(lines, fmt.Sprintf("    PubKeyHash  %x", utxo.TX.Output[utxo.Index].PubKeyHash))
 	return strings.Join(lines, "\n")
+}
+
+func (utxo *UTXO) Key() []byte {
+	return append(utxo.TX.Hash(), util.Int2bytes(utxo.Index, 8)...)
 }
 
 func (utxo *UTXO) Serialize() []byte {
