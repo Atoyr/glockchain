@@ -145,8 +145,16 @@ func DeserializeTransaction(data []byte) Transaction {
 }
 
 // NewTransaction create New TX
-func NewTransaction(utxos []*UTXO, from, to Address, value int, returnValue int) *Transaction {
-	var tx Transaction
+func NewTransaction(wallet *Wallet, to []byte, amount int) *Transaction {
+	var inputs []TXInput
+	var outputs []TXOutput
+	pubKeyHash := HashPubKey(wallet.PublicKey)
+	utxopool := GetUTXOPool()
+	acc, utxos := utxopool.FindUTXOs(pubKeyHash, amount)
+	if acc < amount {
+		log.Panic("ERROR : Not enough funds")
+	}
+
 	tx.Input = make([]*TXInput, len(utxos))
 	sumValue := 0
 	for _, utxo := range utxos {
