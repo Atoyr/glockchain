@@ -5,13 +5,30 @@ import (
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/urfave/cli"
 )
 
 type CLI struct {
-	Bc *Blockchain
+	App *cli.App
+	Bc  *Blockchain
 }
 
-func (cli *CLI) printExecute() {
+func NewCLI() *CLI {
+	var c CLI
+	app := cli.NewApp()
+	app.Name = "GlockChain"
+
+	app.Before = func(c *cli.Context) error {
+		printExecute()
+		return nil
+	}
+
+	c.App = app
+	return &c
+}
+
+func printExecute() {
 	fmt.Println("  /$$$$$$  /$$                     /$$  ")
 	fmt.Println(" /$$__  $$| $$                    | $$  ")
 	fmt.Println("| $$  \\__/| $$  /$$$$$$   /$$$$$$$| $$   /$$")
@@ -33,7 +50,17 @@ func (cli *CLI) printExecute() {
 }
 
 func (cli *CLI) printUsage() {
-	fmt.Println("Usage")
+	fmt.Println("Usage:")
+	fmt.Println("  init")
+	fmt.Println("    Execute createwallet and create a blockchain and send genesis block")
+	fmt.Println("  wallet -create")
+	fmt.Println("    Generate a new key-pair and saves it into the wallet file")
+	fmt.Println("  wallet -list")
+	fmt.Println("    Lists all address from the wallet file")
+	fmt.Println("  wallet -balance")
+	fmt.Println("    Get balance of all address")
+	fmt.Println("  wallet -balance -address ADDRESS")
+	fmt.Println("    Get balance of ADDRESS")
 }
 
 func (cli *CLI) validateArgs() {
@@ -43,7 +70,6 @@ func (cli *CLI) validateArgs() {
 }
 func (cli *CLI) Run() {
 	//cli.validateArgs()
-	cli.printExecute()
 	initializeBlockchainCmd := flag.NewFlagSet("init", flag.ExitOnError)
 	createBlockchainCmd := flag.NewFlagSet("create", flag.ExitOnError)
 	addBlockCmd := flag.NewFlagSet("addblock", flag.ExitOnError)
