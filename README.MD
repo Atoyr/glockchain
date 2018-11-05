@@ -36,3 +36,11 @@ PubKey ???
 Output Value
 ### PubKey
 Wallet Address PubKey
+
+## CLI Usage
+### init
+Execute createwallet and create blockchain
+
+### createwallet
+Generate a new key-pair and saved it into the wallet file
+
