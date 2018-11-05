@@ -71,7 +71,7 @@ func (up *UTXOPool) AddUTXO(utxo *UTXO) {
 func (up *UTXOPool) FindUTXOs(pubKeyHash []byte, amount int) (int, map[string]UTXO) {
 	utxos := make(map[string]UTXO)
 	acc := 0
-	db := getBlockchainDatabase
+	db := getBlockchainDatabase()
 	defer db.Close()
 
 	err := db.View(func(tx *bolt.Tx) error {
@@ -91,7 +91,7 @@ func (up *UTXOPool) FindUTXOs(pubKeyHash []byte, amount int) (int, map[string]UT
 		return nil
 	})
 	errorHandle(err)
-	return acc, &utxo
+	return acc, utxos
 }
 
 func (up *UTXOPool) GetUTXO(txhash []byte, index int) *UTXO {

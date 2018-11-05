@@ -146,8 +146,8 @@ func DeserializeTransaction(data []byte) Transaction {
 
 // NewTransaction create New TX
 func NewTransaction(wallet *Wallet, to []byte, amount int) *Transaction {
-	var inputs []TXInput
-	var outputs []TXOutput
+	var inputs []*TXInput
+	var outputs []*TXOutput
 	pubKeyHash := HashPubKey(wallet.PublicKey)
 	utxopool := GetUTXOPool()
 	acc, utxos := utxopool.FindUTXOs(pubKeyHash, amount)
@@ -155,36 +155,25 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) *Transaction {
 		log.Panic("ERROR : Not enough funds")
 	}
 
-	tx.Input = make([]*TXInput, len(utxos))
-	sumValue := 0
+	inputs = make([]*TXInput, len(utxos))
 	for _, utxo := range utxos {
-		sumValue += utxo.TX.Output[utxo.Index].Value
-		var txin *TXInput
+		var txin TXInput
 		txin.PrevTXHash = utxo.TX.Hash()
 		txin.PrevTXIndex = utxo.Index
-		tx.Input = append(tx.Input, txin)
+		inputs = append(inputs, &txin)
+
 	}
 
-	diffValue := sumValue - value - returnValue
-	if diffValue < 0 {
-		return nil
-	}
-	tx.Version = Version
-	tx.BlockHash = []byte{}
+	diffamount := acc - amount
 
-	outputs := make([]*TXOutput, 2)
-	outputs = append(outputs, []*TXOutput{NewTXOutput(value, to)}...)
-	if diffValue > 0 {
-		outputs = append(outputs, []*TXOutput{NewTXOutput(diffValue, from)}...)
+	outputs = make([]*TXOutput, 2)
+	outputs = append(outputs, NewTXOutput(amount, to))
+	if diffamount > 0 {
+		outputs = append(outputs, NewTXOutput(diffamount, wallet.GetAddress()))
 	}
-	tx.Output = outputs
-
+	tx := Transaction{Version, []byte{}, []byte{}, inputs, outputs}
 	txp := GetTransactionPool()
-	up := GetUTXOPool()
 	txp.AddTransaction(&tx)
-	for _, utxo := range utxos {
-		up.AddUTXO(utxo)
-	}
 	return &tx
 }
 
