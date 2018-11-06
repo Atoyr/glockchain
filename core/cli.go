@@ -28,7 +28,12 @@ func (cli *CLI) Initialize() {
 		cli.printExecute()
 		return nil
 	}
+	cli.App.Author = "atoyr"
 
+	// blockchain interactive interface
+	//cli.App.Action = func(c *urfaveCli.Context) error {
+	//return nil
+	//}
 	cli.App.Commands = []urfaveCli.Command{
 		{
 			Name:    "initialize",
@@ -62,8 +67,60 @@ func (cli *CLI) Initialize() {
 				},
 			},
 		},
+		{
+			Name:    "block",
+			Aliases: []string{"b"},
+			Usage:   "block action",
+			Subcommands: []urfaveCli.Command{
+				{
+					Name:  "create",
+					Usage: "create block",
+					Action: func(c *urfaveCli.Context) error {
+						fmt.Println("Not implements")
+						return nil
+					},
+				},
+			},
+		},
+		{
+			Name:    "blockchain",
+			Aliases: []string{"bc"},
+			Usage:   "blockchain action",
+			Subcommands: []urfaveCli.Command{
+				{
+					Name:  "print",
+					Usage: "print blockchain",
+					Action: func(c *urfaveCli.Context) error {
+						cli.printChain()
+						return nil
+					},
+				},
+			},
+		},
+		{
+			Name:    "transaction",
+			Aliases: []string{"tran", "t"},
+			Usage:   "transaction action",
+			Subcommands: []urfaveCli.Command{
+				{
+					Name:  "create",
+					Usage: "create transaction",
+					Action: func(c *urfaveCli.Context) error {
+						fmt.Println("Not implements")
+						return nil
+					},
+				},
+				{
+					Name:  "list",
+					Usage: "show transaction pool",
+					Action: func(c *urfaveCli.Context) error {
+						fmt.Println("Not implements")
+						return nil
+					},
+				},
+			},
+		},
 	}
-
 }
 
 func (cli *CLI) printExecute() {
