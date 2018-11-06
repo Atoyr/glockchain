@@ -34,7 +34,7 @@ func (bc *Blockchain) AddBlock(block *Block) {
 	errorHandle(err)
 }
 
-func CreateBlockchain(address Address) *Blockchain {
+func CreateBlockchain(address []byte) *Blockchain {
 	if dbExists(dbFile) {
 		log.Println("Exist db file")
 		os.Exit(1)

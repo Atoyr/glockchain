@@ -28,6 +28,7 @@ func (cli *CLI) getBalance(address string) {
 	}
 	utxopool := GetUTXOPool()
 	pubKeyHash := util.Base58Decode([]byte(address))
+	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
 	balance, _ := utxopool.FindUTXOs(pubKeyHash)
 	fmt.Printf("Balance of %s : %d \n", address, balance)
 }

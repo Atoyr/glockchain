@@ -178,7 +178,7 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) *Transaction {
 }
 
 // NewCoinbaseTX Create New Coinbase TX
-func NewCoinbaseTX(value int, to Address) *Transaction {
+func NewCoinbaseTX(value int, to []byte) *Transaction {
 	txi := &TXInput{[]byte{}, -1, []byte{}, []byte{}}
 	txo := NewTXOutput(value, to)
 	var tx Transaction

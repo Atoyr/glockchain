@@ -20,7 +20,7 @@ func (txo *TXOutput) Hash() []byte {
 	return hash[:]
 }
 
-func (txo *TXOutput) Lock(address Address) {
+func (txo *TXOutput) Lock(address []byte) {
 	pubKeyHash := util.Base58Decode(address)
 	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
 	txo.PubKeyHash = pubKeyHash
@@ -28,7 +28,7 @@ func (txo *TXOutput) Lock(address Address) {
 func (txo *TXOutput) IsLockedWithKey(pubKeyHash []byte) bool {
 	return bytes.Compare(txo.PubKeyHash, pubKeyHash) == 0
 }
-func NewTXOutput(value int, address Address) *TXOutput {
+func NewTXOutput(value int, address []byte) *TXOutput {
 	txo := &TXOutput{value, nil}
 	txo.Lock(address)
 	return txo
