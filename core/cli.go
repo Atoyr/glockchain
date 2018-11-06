@@ -65,6 +65,19 @@ func (cli *CLI) Initialize() {
 						return nil
 					},
 				},
+				{
+					Name:  "balance",
+					Usage: "Get balance",
+					Action: func(c *urfaveCli.Context) error {
+						fmt.Println("Not implements")
+						return nil
+					},
+					Flags: []urfaveCli.Flag{
+						urfaveCli.StringFlag{
+							Name: "address, a",
+						},
+					},
+				},
 			},
 		},
 		{
