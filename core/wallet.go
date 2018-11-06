@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -60,4 +61,17 @@ func checksum(payload []byte) []byte {
 	firstSHA := sha256.Sum256(payload)
 	secondSHA := sha256.Sum256(firstSHA[:])
 	return secondSHA[:addressChecksumLength]
+}
+
+func ValidateAddress(address []byte) bool {
+	pubKeyHash := util.Base58Decode(address)
+	if len(pubKeyHash)-addressChecksumLength < 0 {
+		return false
+	}
+	actualChecksum := pubKeyHash[len(pubKeyHash)-addressChecksumLength:]
+	version := pubKeyHash[0]
+	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-addressChecksumLength]
+	targetChecksum := checksum(append([]byte{version}, pubKeyHash...))
+
+	return bytes.Compare(actualChecksum, targetChecksum) == 0
 }
