@@ -1,10 +1,12 @@
 package main
 
 import (
+	"os"
+
 	"github.com/atoyr/glockchain/core"
 )
 
 func main() {
-	var cli core.CLI
-	cli.Run()
+	cli := core.NewCLI()
+	cli.App.Run(os.Args)
 }

@@ -1,34 +1,71 @@
 package core
 
 import (
-	"encoding/hex"
-	"flag"
 	"fmt"
-	"os"
 
-	"github.com/urfave/cli"
+	urfaveCli "github.com/urfave/cli"
 )
 
 type CLI struct {
-	App *cli.App
+	App *urfaveCli.App
 	Bc  *Blockchain
 }
 
 func NewCLI() *CLI {
 	var c CLI
-	app := cli.NewApp()
+	app := urfaveCli.NewApp()
 	app.Name = "GlockChain"
-
-	app.Before = func(c *cli.Context) error {
-		printExecute()
-		return nil
-	}
-
 	c.App = app
+
+	c.Initialize()
+
 	return &c
 }
 
-func printExecute() {
+func (cli *CLI) Initialize() {
+	cli.App.Before = func(c *urfaveCli.Context) error {
+		cli.printExecute()
+		return nil
+	}
+
+	cli.App.Commands = []urfaveCli.Command{
+		{
+			Name:    "initialize",
+			Aliases: []string{"i", "init"},
+			Usage:   "Execute createwallet and create a blockchain and send genesis block",
+			Action: func(c *urfaveCli.Context) error {
+				cli.initializeBlockchain()
+				return nil
+			},
+		},
+		{
+			Name:    "wallet",
+			Aliases: []string{"w"},
+			Usage:   "wallet action",
+			Subcommands: []urfaveCli.Command{
+				{
+					Name:  "create",
+					Usage: "Generate a new key-pair and saves it into the wallet file",
+					Action: func(c *urfaveCli.Context) error {
+						cli.createWallet()
+						return nil
+					},
+				},
+				{
+					Name:  "list",
+					Usage: "Lists all address from the wallet file",
+					Action: func(c *urfaveCli.Context) error {
+						cli.printWallets()
+						return nil
+					},
+				},
+			},
+		},
+	}
+
+}
+
+func (cli *CLI) printExecute() {
 	fmt.Println("  /$$$$$$  /$$                     /$$  ")
 	fmt.Println(" /$$__  $$| $$                    | $$  ")
 	fmt.Println("| $$  \\__/| $$  /$$$$$$   /$$$$$$$| $$   /$$")
@@ -46,88 +83,7 @@ func printExecute() {
 	fmt.Println("    | $$    $$| $$  | $$ /$$__  $$| $$| $$  | $$")
 	fmt.Println("    |  $$$$$$/| $$  | $$|  $$$$$$$| $$| $$  | $$")
 	fmt.Println("     \\______/ |__/  |__/ \\_______/|__/|__/  |__/")
-
-}
-
-func (cli *CLI) printUsage() {
-	fmt.Println("Usage:")
-	fmt.Println("  init")
-	fmt.Println("    Execute createwallet and create a blockchain and send genesis block")
-	fmt.Println("  wallet -create")
-	fmt.Println("    Generate a new key-pair and saves it into the wallet file")
-	fmt.Println("  wallet -list")
-	fmt.Println("    Lists all address from the wallet file")
-	fmt.Println("  wallet -balance")
-	fmt.Println("    Get balance of all address")
-	fmt.Println("  wallet -balance -address ADDRESS")
-	fmt.Println("    Get balance of ADDRESS")
-}
-
-func (cli *CLI) validateArgs() {
-	if len(os.Args) < 2 {
-		os.Exit(1)
-	}
-}
-func (cli *CLI) Run() {
-	//cli.validateArgs()
-	initializeBlockchainCmd := flag.NewFlagSet("init", flag.ExitOnError)
-	createBlockchainCmd := flag.NewFlagSet("create", flag.ExitOnError)
-	addBlockCmd := flag.NewFlagSet("addblock", flag.ExitOnError)
-	printChainCmd := flag.NewFlagSet("pc", flag.ExitOnError)
-	createWalletCmd := flag.NewFlagSet("cw", flag.ExitOnError)
-	printWalletCmd := flag.NewFlagSet("pw", flag.ExitOnError)
-	printUtxoCmd := flag.NewFlagSet("pu", flag.ExitOnError)
-
-	createBlockchainAddress := createBlockchainCmd.String("address", "", "The address tosend genesis block reward to")
-	printUtxoTxhash := printUtxoCmd.String("txhash", "", "The address tosend genesis block reward to")
-	index := printUtxoCmd.Int("index", 0, "The address tosend genesis block reward to")
-	var err error
-	switch os.Args[1] {
-	case "init":
-		err = initializeBlockchainCmd.Parse(os.Args[2:])
-	case "create":
-		err = createBlockchainCmd.Parse(os.Args[2:])
-	case "addblock":
-		err = addBlockCmd.Parse(os.Args[2:])
-	case "pc":
-		err = printChainCmd.Parse(os.Args[2:])
-	case "cw":
-		err = createWalletCmd.Parse(os.Args[2:])
-	case "pw":
-		err = printWalletCmd.Parse(os.Args[2:])
-	case "pu":
-		err = printUtxoCmd.Parse(os.Args[2:])
-	default:
-		cli.printUsage()
-		os.Exit(1)
-	}
-	if err != nil {
-		os.Exit(1)
-	}
-	if initializeBlockchainCmd.Parsed() {
-		cli.initializeBlockchain()
-	}
-	if createBlockchainCmd.Parsed() {
-		cli.createBlockchain(*createBlockchainAddress)
-	}
-	if printChainCmd.Parsed() {
-		cli.printChain()
-	}
-	if createWalletCmd.Parsed() {
-		cli.createWallet()
-	}
-	if printWalletCmd.Parsed() {
-		cli.printWallets()
-	}
-	if printUtxoCmd.Parsed() {
-		if *printUtxoTxhash != "" {
-			up := GetUTXOPool()
-			b, _ := hex.DecodeString(*printUtxoTxhash)
-			fmt.Println(up.GetUTXO(b, *index))
-		} else {
-			cli.printUtxo()
-		}
-	}
+	fmt.Println("")
 }
 
 func (cli *CLI) initializeBlockchain() {
