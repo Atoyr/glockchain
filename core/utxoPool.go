@@ -68,7 +68,7 @@ func (up *UTXOPool) AddUTXO(utxo *UTXO) {
 	up.Pool[hex.EncodeToString(utxo.Key())] = utxo
 }
 
-func (up *UTXOPool) FindUTXOs(pubKeyHash []byte, amount int) (int, map[string]UTXO) {
+func (up *UTXOPool) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, map[string]UTXO) {
 	utxos := make(map[string]UTXO)
 	acc := 0
 	db := getBlockchainDatabase()
@@ -92,6 +92,29 @@ func (up *UTXOPool) FindUTXOs(pubKeyHash []byte, amount int) (int, map[string]UT
 	})
 	errorHandle(err)
 	return acc, utxos
+}
+
+func (up *UTXOPool) FindUTXOs(pubKeyHash []byte) (int, map[string]UTXO) {
+	utxos := make(map[string]UTXO)
+	balance := 0
+	db := getBlockchainDatabase()
+	defer db.Close()
+
+	err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(utxoBucket))
+		c := b.Cursor()
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			key := hex.EncodeToString(k)
+			utxo := DeserializeUtxo(v)
+			if utxo.TX.Output[utxo.Index].IsLockedWithKey(pubKeyHash) {
+				balance = balance + utxo.TX.Output[utxo.Index].Value
+				utxos[key] = utxo
+			}
+		}
+		return nil
+	})
+	errorHandle(err)
+	return balance, utxos
 }
 
 func (up *UTXOPool) GetUTXO(txhash []byte, index int) *UTXO {

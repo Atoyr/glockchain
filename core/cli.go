@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"log"
 
 	urfaveCli "github.com/urfave/cli"
 )
@@ -69,7 +70,12 @@ func (cli *CLI) Initialize() {
 					Name:  "balance",
 					Usage: "Get balance",
 					Action: func(c *urfaveCli.Context) error {
-						fmt.Println("Not implements")
+						address := c.String("a")
+						if address == "" {
+							log.Println("ERROR: Address not fount")
+							return nil
+						}
+						cli.getBalance(address)
 						return nil
 					},
 					Flags: []urfaveCli.Flag{

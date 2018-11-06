@@ -150,7 +150,7 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) *Transaction {
 	var outputs []*TXOutput
 	pubKeyHash := HashPubKey(wallet.PublicKey)
 	utxopool := GetUTXOPool()
-	acc, utxos := utxopool.FindUTXOs(pubKeyHash, amount)
+	acc, utxos := utxopool.FindSpendableOutputs(pubKeyHash, amount)
 	if acc < amount {
 		log.Panic("ERROR : Not enough funds")
 	}
