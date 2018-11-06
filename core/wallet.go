@@ -46,6 +46,12 @@ func newKeyPair() (ecdsa.PrivateKey, []byte) {
 	return *private, pubKey
 }
 
+func checksum(payload []byte) []byte {
+	firstSHA := sha256.Sum256(payload)
+	secondSHA := sha256.Sum256(firstSHA[:])
+	return secondSHA[:addressChecksumLength]
+}
+
 func HashPubKey(pubKey []byte) []byte {
 	pubSHA256 := sha256.Sum256(pubKey)
 	RIPEMD160Hasher := ripemd160.New()
@@ -56,11 +62,6 @@ func HashPubKey(pubKey []byte) []byte {
 	}
 	pubRIPEMD160 := RIPEMD160Hasher.Sum(nil)
 	return pubRIPEMD160
-}
-func checksum(payload []byte) []byte {
-	firstSHA := sha256.Sum256(payload)
-	secondSHA := sha256.Sum256(firstSHA[:])
-	return secondSHA[:addressChecksumLength]
 }
 
 func ValidateAddress(address []byte) bool {
