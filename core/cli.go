@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"log"
 
 	urfaveCli "github.com/urfave/cli"
 )
@@ -72,7 +71,7 @@ func (cli *CLI) Initialize() {
 					Action: func(c *urfaveCli.Context) error {
 						address := c.String("a")
 						if address == "" {
-							log.Println("ERROR: Address not fount")
+							cli.getAllBalance()
 							return nil
 						}
 						cli.getBalance(address)

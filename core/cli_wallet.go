@@ -3,8 +3,6 @@ package core
 import (
 	"fmt"
 	"log"
-
-	"github.com/atoyr/glockchain/util"
 )
 
 func (cli *CLI) createWallet() {
@@ -27,8 +25,17 @@ func (cli *CLI) getBalance(address string) {
 		log.Panic("ERROR: Address is not valid")
 	}
 	utxopool := GetUTXOPool()
-	pubKeyHash := util.Base58Decode([]byte(address))
-	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
+	pubKeyHash := AddressToPubKeyHash([]byte(address))
 	balance, _ := utxopool.FindUTXOs(pubKeyHash)
 	fmt.Printf("Balance of %s : %d \n", address, balance)
+}
+
+func (cli *CLI) getAllBalance() {
+	wallets := NewWallets()
+	utxopool := GetUTXOPool()
+	for address := range wallets.Wallets {
+		pubKeyHash := AddressToPubKeyHash([]byte(address))
+		balance, _ := utxopool.FindUTXOs(pubKeyHash)
+		fmt.Printf("Balance of %s : %d \n", address, balance)
+	}
 }
