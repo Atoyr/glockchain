@@ -76,3 +76,9 @@ func ValidateAddress(address []byte) bool {
 
 	return bytes.Compare(actualChecksum, targetChecksum) == 0
 }
+
+func AddressToPubKeyHash(address []byte) []byte {
+	a := util.Base58Decode(address)
+	pubKeyHash := a[1 : len(a)-4]
+	return pubKeyHash
+}

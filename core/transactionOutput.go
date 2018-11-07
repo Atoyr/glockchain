@@ -21,8 +21,7 @@ func (txo *TXOutput) Hash() []byte {
 }
 
 func (txo *TXOutput) Lock(address []byte) {
-	pubKeyHash := util.Base58Decode(address)
-	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
+	pubKeyHash := AddressToPubKeyHash(address)
 	txo.PubKeyHash = pubKeyHash
 }
 func (txo *TXOutput) IsLockedWithKey(pubKeyHash []byte) bool {

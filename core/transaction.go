@@ -19,8 +19,8 @@ type Transaction struct {
 	Version   byte
 	ID        []byte
 	BlockHash []byte
-	Input     []*TXInput
-	Output    []*TXOutput
+	Input     []TXInput
+	Output    []TXOutput
 }
 
 // Hash Hash to transaction
@@ -86,14 +86,14 @@ func (tx *Transaction) Verify() bool {
 
 // TrimmedCopy copy TX (not in TXI pubkey and Signature)
 func (tx *Transaction) TrimmedCopy() Transaction {
-	var inputs []*TXInput
-	var outputs []*TXOutput
+	var inputs []TXInput
+	var outputs []TXOutput
 
 	for _, vin := range tx.Input {
-		inputs = append(inputs, &TXInput{vin.PrevTXHash, vin.PrevTXIndex, nil, nil})
+		inputs = append(inputs, TXInput{vin.PrevTXHash, vin.PrevTXIndex, nil, nil})
 	}
 	for _, vout := range tx.Output {
-		outputs = append(outputs, &TXOutput{vout.Value, vout.PubKeyHash})
+		outputs = append(outputs, TXOutput{vout.Value, vout.PubKeyHash})
 	}
 	txCopy := Transaction{tx.Version, tx.ID, []byte{}, inputs, outputs}
 	return txCopy
@@ -146,8 +146,8 @@ func DeserializeTransaction(data []byte) Transaction {
 
 // NewTransaction create New TX
 func NewTransaction(wallet *Wallet, to []byte, amount int) *Transaction {
-	var inputs []*TXInput
-	var outputs []*TXOutput
+	var inputs []TXInput
+	var outputs []TXOutput
 	pubKeyHash := HashPubKey(wallet.PublicKey)
 	utxopool := GetUTXOPool()
 	acc, utxos := utxopool.FindSpendableOutputs(pubKeyHash, amount)
@@ -155,25 +155,31 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) *Transaction {
 		log.Panic("ERROR : Not enough funds")
 	}
 
-	inputs = make([]*TXInput, len(utxos))
+	inputs = make([]TXInput, len(utxos))
 	for _, utxo := range utxos {
 		var txin TXInput
 		txin.PrevTXHash = utxo.TX.Hash()
 		txin.PrevTXIndex = utxo.Index
-		inputs = append(inputs, &txin)
-
+		inputs = append(inputs, txin)
 	}
-
+	for _, txin := range inputs {
+		log.Printf("prev : %x", txin.PrevTXHash)
+		log.Printf("index: %d", txin.PrevTXIndex)
+	}
 	diffamount := acc - amount
 
-	outputs = make([]*TXOutput, 2)
-	outputs = append(outputs, NewTXOutput(amount, to))
+	outputs = make([]TXOutput, 2)
+	outputs = append(outputs, *NewTXOutput(amount, to))
 	if diffamount > 0 {
-		outputs = append(outputs, NewTXOutput(diffamount, wallet.GetAddress()))
+		outputs = append(outputs, *NewTXOutput(diffamount, wallet.GetAddress()))
 	}
 	tx := Transaction{Version, []byte{}, []byte{}, inputs, outputs}
 	txp := GetTransactionPool()
 	txp.AddTransaction(&tx)
+	for i := range tx.Output {
+		utxo := UTXO{&tx, i}
+		utxopool.AddUTXO(&utxo)
+	}
 	return &tx
 }
 
@@ -183,8 +189,8 @@ func NewCoinbaseTX(value int, to []byte) *Transaction {
 	txo := NewTXOutput(value, to)
 	var tx Transaction
 	tx.Version = 0x00
-	tx.Input = []*TXInput{txi}
-	tx.Output = []*TXOutput{txo}
+	tx.Input = []TXInput{*txi}
+	tx.Output = []TXOutput{*txo}
 	wallets := NewWallets()
 	wallet := wallets.GetWallet(to)
 	tx.Sign(wallet.PrivateKey)

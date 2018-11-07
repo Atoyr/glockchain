@@ -19,7 +19,7 @@ func GetTransactionPool() *TransactionPool {
 	}
 	db := getBlockchainDatabase()
 	defer db.Close()
-	err := db.View(func(tx *bolt.Tx) error {
+	err := db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(txpoolBucket))
 		errorHandle(err)
 		c := b.Cursor()

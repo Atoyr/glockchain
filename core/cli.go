@@ -124,14 +124,29 @@ func (cli *CLI) Initialize() {
 					Name:  "create",
 					Usage: "create transaction",
 					Action: func(c *urfaveCli.Context) error {
-						fmt.Println("Not implements")
+						from := c.String("f")
+						to := c.String("t")
+						amount := c.Int("am")
+						cli.createTransaction(from, to, amount)
 						return nil
+					},
+					Flags: []urfaveCli.Flag{
+						urfaveCli.StringFlag{
+							Name: "from, f",
+						},
+						urfaveCli.StringFlag{
+							Name: "to, t",
+						},
+						urfaveCli.IntFlag{
+							Name: "amount, am",
+						},
 					},
 				},
 				{
 					Name:  "list",
 					Usage: "show transaction pool",
 					Action: func(c *urfaveCli.Context) error {
+						cli.printUtxo()
 						fmt.Println("Not implements")
 						return nil
 					},
