@@ -146,8 +146,7 @@ func (cli *CLI) Initialize() {
 					Name:  "list",
 					Usage: "show transaction pool",
 					Action: func(c *urfaveCli.Context) error {
-						cli.printUtxo()
-						fmt.Println("Not implements")
+						cli.printTransactionPool()
 						return nil
 					},
 				},
