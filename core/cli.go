@@ -152,6 +152,15 @@ func (cli *CLI) Initialize() {
 				},
 			},
 		},
+		{
+			Name:    "mining",
+			Aliases: []string{"m"},
+			Usage:   "mining action",
+			Action: func(c *urfaveCli.Context) error {
+				fmt.Println("Not implements")
+				return nil
+			},
+		},
 	}
 }
 
