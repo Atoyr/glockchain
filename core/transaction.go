@@ -156,30 +156,25 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) *Transaction {
 	}
 
 	inputs = make([]TXInput, len(utxos))
+	index := 0
 	for _, utxo := range utxos {
 		var txin TXInput
 		txin.PrevTXHash = utxo.TX.Hash()
 		txin.PrevTXIndex = utxo.Index
-		inputs = append(inputs, txin)
-	}
-	for _, txin := range inputs {
-		log.Printf("prev : %x", txin.PrevTXHash)
-		log.Printf("index: %d", txin.PrevTXIndex)
+		inputs[index] = txin
+		index++
 	}
 	diffamount := acc - amount
 
-	outputs = make([]TXOutput, 2)
-	outputs = append(outputs, *NewTXOutput(amount, to))
+	outputs = make([]TXOutput, 1)
+	outputs[0] = *NewTXOutput(amount, to)
 	if diffamount > 0 {
 		outputs = append(outputs, *NewTXOutput(diffamount, wallet.GetAddress()))
 	}
 	tx := Transaction{Version, []byte{}, []byte{}, inputs, outputs}
 	txp := GetTransactionPool()
 	txp.AddTransaction(&tx)
-	for i := range tx.Output {
-		utxo := UTXO{&tx, i}
-		utxopool.AddUTXO(&utxo)
-	}
+	utxopool.AddUTXO(&tx)
 	return &tx
 }
 

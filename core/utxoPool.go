@@ -50,7 +50,7 @@ func GetUTXOPool() *UTXOPool {
 	return utxopool
 }
 
-func (up *UTXOPool) AddUTXO(utxo *UTXO) {
+func (up *UTXOPool) AddUTXO(t *Transaction) {
 	if dbExists(dbFile) == false {
 		log.Println("Not exists db file")
 		os.Exit(1)
@@ -60,12 +60,21 @@ func (up *UTXOPool) AddUTXO(utxo *UTXO) {
 	err := db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(utxoBucket))
 		errorHandle(err)
-		err = b.Put(append(utxo.TX.Hash(), util.Int2bytes(utxo.Index, 8)...), utxo.Serialize())
+		for _, input := range t.Input {
+			key := getUTXOPoolKey(input.PrevTXHash, input.PrevTXIndex)
+			b.Delete(key)
+			delete(up.Pool, hex.EncodeToString(key))
+		}
+		for i := range t.Output {
+			utxo := UTXO{t, i}
+			err = b.Put(utxo.Key(), utxo.Serialize())
+			errorHandle(err)
+			up.Pool[hex.EncodeToString(utxo.Key())] = &utxo
+		}
 		errorHandle(err)
 		return nil
 	})
 	errorHandle(err)
-	up.Pool[hex.EncodeToString(utxo.Key())] = utxo
 }
 
 func (up *UTXOPool) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, map[string]UTXO) {
@@ -139,7 +148,9 @@ func (up *UTXOPool) String() string {
 	var lines []string
 	for _, utxo := range up.Pool {
 		lines = append(lines, utxo.String())
-		lines = append(lines, utxo.TX.String())
 	}
 	return strings.Join(lines, "\n")
+}
+func getUTXOPoolKey(txhash []byte, index int) []byte {
+	return append(txhash, util.Int2bytes(index, 8)...)
 }

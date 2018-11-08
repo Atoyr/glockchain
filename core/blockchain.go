@@ -57,8 +57,7 @@ func CreateBlockchain(address []byte) *Blockchain {
 	db.Close()
 
 	up := GetUTXOPool()
-	utxo := UTXO{genesis.Transactions[0], 0}
-	up.AddUTXO(&utxo)
+	up.AddUTXO(genesis.Transactions[0])
 
 	bc := Blockchain{tip}
 	return &bc
