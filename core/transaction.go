@@ -161,6 +161,7 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) *Transaction {
 		var txin TXInput
 		txin.PrevTXHash = utxo.TX.Hash()
 		txin.PrevTXIndex = utxo.Index
+		txin.PubKey = wallet.PublicKey
 		inputs[index] = txin
 		index++
 	}
@@ -172,6 +173,7 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) *Transaction {
 		outputs = append(outputs, *NewTXOutput(diffamount, wallet.GetAddress()))
 	}
 	tx := Transaction{Version, []byte{}, []byte{}, inputs, outputs}
+	tx.Sign(wallet.PrivateKey)
 	txp := GetTransactionPool()
 	txp.AddTransaction(&tx)
 	utxopool.AddUTXO(&tx)
