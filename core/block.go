@@ -9,6 +9,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/atoyr/glockchain/util"
 )
 
 type Block struct {
@@ -20,12 +22,15 @@ type Block struct {
 	Transactions []*Transaction
 }
 
-func (b *Block) ToTransactionsByte() []byte {
-	bytes := make([]byte, 0, 10)
-	for _, v := range b.Transactions {
-		bytes = append(bytes, v.Hash()...)
-	}
-	return bytes
+func (block *Block) ToHash() []byte {
+	var b []byte
+	b = append(b, block.PreviousHash...)
+	b = append(b, block.HashTransactions()...)
+	b = append(b, util.Int642bytes(block.Timestamp)...)
+	b = append(b, util.Int642bytes(block.Nonce)...)
+
+	hash := sha256.Sum256(b)
+	return hash[:]
 }
 
 func (b *Block) SetHash() {
@@ -64,6 +69,16 @@ func DeserializeBlock(d []byte) *Block {
 	}
 	return &block
 }
+func (b *Block) HashTransactions() []byte {
+	var txbytes [][]byte
+
+	for _, tx := range b.Transactions {
+		txbytes = append(txbytes, tx.Bytes())
+	}
+	mtree := NewMerkleTree(txbytes)
+	return mtree.RootNode.Data
+}
+
 func (b *Block) String() string {
 	var lines []string
 	lines = append(lines, fmt.Sprintf("Block : %x", b.Hash))

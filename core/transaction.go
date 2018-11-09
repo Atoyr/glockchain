@@ -23,8 +23,7 @@ type Transaction struct {
 	Output    []TXOutput
 }
 
-// Hash Hash to transaction
-func (tx *Transaction) Hash() []byte {
+func (tx *Transaction) Bytes() []byte {
 	var b []byte
 	txCopy := *tx
 	b = append(b, txCopy.Version)
@@ -35,7 +34,12 @@ func (tx *Transaction) Hash() []byte {
 	for _, out := range txCopy.Output {
 		b = append(b, out.Hash()...)
 	}
+	return b
+}
 
+// Hash Hash to transaction
+func (tx *Transaction) Hash() []byte {
+	b := tx.Bytes()
 	var hash, hash2 [32]byte
 	hash = sha256.Sum256(b)
 	hash2 = sha256.Sum256(hash[:])

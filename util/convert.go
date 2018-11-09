@@ -1,6 +1,7 @@
 package util
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"strconv"
@@ -65,4 +66,10 @@ func Int2bytes(i int, size int) []byte {
 		ui = (^uint64(-i) + 1)
 	}
 	return Uint2bytes(ui, size)
+}
+
+func Int642bytes(i int64) []byte {
+	buff := new(bytes.Buffer)
+	binary.Write(buff, binary.BigEndian, i)
+	return buff.Bytes()
 }
