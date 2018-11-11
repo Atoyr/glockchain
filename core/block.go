@@ -20,6 +20,7 @@ type Block struct {
 	Hash         []byte
 	Nonce        int
 	Transactions []*Transaction
+	TXHash       []byte
 }
 
 func (block *Block) ToHash() []byte {
@@ -45,6 +46,7 @@ func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
 
 	block.Nonce = nonce
 	block.Hash = hash
+	block.TXHash = block.HashTransactions()
 	return block
 }
 func NewGenesisBlock(tx *Transaction) *Block {
