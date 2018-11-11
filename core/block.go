@@ -18,7 +18,7 @@ type Block struct {
 	PreviousHash []byte
 	Timestamp    int64
 	Hash         []byte
-	Nonce        int64
+	Nonce        int
 	Transactions []*Transaction
 }
 
@@ -27,7 +27,7 @@ func (block *Block) ToHash() []byte {
 	b = append(b, block.PreviousHash...)
 	b = append(b, block.HashTransactions()...)
 	b = append(b, util.Int642bytes(block.Timestamp)...)
-	b = append(b, util.Int642bytes(block.Nonce)...)
+	b = append(b, util.Int2bytes(block.Nonce, 8)...)
 
 	hash := sha256.Sum256(b)
 	return hash[:]
@@ -40,10 +40,11 @@ func (b *Block) SetHash() {
 
 func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
 	block := &Block{Timestamp: time.Now().Unix(), Transactions: transactions, PreviousHash: prevBlockHash}
-	block.SetHash()
-	for _, tx := range block.Transactions {
-		tx.BlockHash = block.Hash
-	}
+	pow := NewProofOfWork(block)
+	nonce, hash := pow.Run()
+
+	block.Nonce = nonce
+	block.Hash = hash
 	return block
 }
 func NewGenesisBlock(tx *Transaction) *Block {
