@@ -50,3 +50,20 @@ func (txp *TransactionPool) AddTransaction(transaction *Transaction) {
 	errorHandle(err)
 	txp.Pool = append(txp.Pool, transaction)
 }
+
+func (txp *TransactionPool) ClearTransactionPool() {
+	if dbExists(dbFile) == false {
+		log.Println("Not exists db file")
+		os.Exit(1)
+	}
+	db := getBlockchainDatabase()
+	defer db.Close()
+	err := db.Update(func(tx *bolt.Tx) error {
+		tx.DeleteBucket([]byte(txpoolBucket))
+		_, err := tx.CreateBucket([]byte(txpoolBucket))
+		errorHandle(err)
+		return nil
+	})
+	errorHandle(err)
+	txp.Pool = make([]*Transaction, 0, 1)
+}

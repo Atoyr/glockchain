@@ -2,6 +2,7 @@ package core
 
 import (
 	"crypto/sha256"
+	"fmt"
 	"math"
 	"math/big"
 
@@ -15,11 +16,12 @@ type ProofOfWork struct {
 
 var maxnonce = math.MaxInt64
 
-const targetbits = 4
+const targetbits = 16
 
 func NewProofOfWork(b *Block) *ProofOfWork {
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-targetbits))
+
 	pow := ProofOfWork{b, target}
 
 	return &pow
@@ -32,6 +34,10 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 	for nonce < maxnonce {
 		data := pow.prepareData(nonce)
 		hash = sha256.Sum256(data)
+
+		fmt.Printf("nonce    : %d\n", nonce)
+		fmt.Printf("maxnonce : %d\n", maxnonce)
+		fmt.Printf("hash     :%x\n", hash)
 
 		hashInt.SetBytes(hash[:])
 		if hashInt.Cmp(pow.target) == -1 {

@@ -40,14 +40,20 @@ func (b *Block) SetHash() {
 }
 
 func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
-	block := &Block{Timestamp: time.Now().Unix(), Transactions: transactions, PreviousHash: prevBlockHash}
-	pow := NewProofOfWork(block)
+	var block Block
+	block.Timestamp = time.Now().Unix()
+	block.Transactions = transactions
+	block.PreviousHash = prevBlockHash
+	pow := NewProofOfWork(&block)
 	nonce, hash := pow.Run()
 
 	block.Nonce = nonce
 	block.Hash = hash
 	block.TXHash = block.HashTransactions()
-	return block
+	for i := range block.Transactions {
+		block.Transactions[i].BlockHash = hash
+	}
+	return &block
 }
 func NewGenesisBlock(tx *Transaction) *Block {
 	block := NewBlock([]*Transaction{tx}, []byte{})

@@ -86,21 +86,6 @@ func (cli *CLI) Initialize() {
 			},
 		},
 		{
-			Name:    "block",
-			Aliases: []string{"b"},
-			Usage:   "block action",
-			Subcommands: []urfaveCli.Command{
-				{
-					Name:  "create",
-					Usage: "create block",
-					Action: func(c *urfaveCli.Context) error {
-						fmt.Println("Not implements")
-						return nil
-					},
-				},
-			},
-		},
-		{
 			Name:    "blockchain",
 			Aliases: []string{"bc"},
 			Usage:   "blockchain action",
@@ -157,7 +142,7 @@ func (cli *CLI) Initialize() {
 			Aliases: []string{"m"},
 			Usage:   "mining action",
 			Action: func(c *urfaveCli.Context) error {
-				fmt.Println("Not implements")
+				cli.mining()
 				return nil
 			},
 		},
@@ -200,7 +185,7 @@ func (cli *CLI) createBlockchain(address string) {
 }
 
 func (cli *CLI) printChain() {
-	cli.Bc = GetBlockchain()
+	cli.Bc, _ = GetBlockchain()
 	bci := cli.Bc.Iterator()
 	for {
 		block := bci.Next()

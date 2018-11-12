@@ -15,6 +15,7 @@ type Blockchain struct {
 func (bc *Blockchain) AddBlock(block *Block) {
 	//var lastHash []byte
 	db := getBlockchainDatabase()
+	defer db.Close()
 	err := db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(blocksBucket))
 
@@ -25,9 +26,7 @@ func (bc *Blockchain) AddBlock(block *Block) {
 		blockData := block.Serialize()
 		err := b.Put(block.Hash, blockData)
 		errorHandle(err)
-		//lastHash := b.Get([]byte("l"))
-		//lastBlockData := b.Get(lastHash)
-		//lastBlock := DeserializeBlock(lastBlockData)
+		err = b.Put([]byte("l"), block.Hash)
 		return nil
 
 	})
@@ -63,7 +62,7 @@ func CreateBlockchain(address []byte) *Blockchain {
 	return &bc
 }
 
-func GetBlockchain() *Blockchain {
+func GetBlockchain() (*Blockchain, []byte) {
 	var tip []byte
 	if dbExists(dbFile) == false {
 		fmt.Println("Not exist db file")
@@ -78,7 +77,9 @@ func GetBlockchain() *Blockchain {
 	})
 	errorHandle(err)
 	bc := Blockchain{tip}
-	return &bc
+	tip2 := make([]byte, len(tip))
+	copy(tip2, tip)
+	return &bc, tip2
 }
 
 func getBlockchainDatabase() *bolt.DB {
