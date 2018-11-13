@@ -16,6 +16,7 @@ func NewCLI() *CLI {
 	app := urfaveCli.NewApp()
 	app.Name = "GlockChain"
 	app.Usage = "A golang blockchain application"
+	app.Version = "0.1.0.0"
 	c.App = app
 
 	c.Initialize()
