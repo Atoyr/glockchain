@@ -6,35 +6,32 @@ import (
 	urfaveCli "github.com/urfave/cli"
 )
 
+// CLI cli
 type CLI struct {
 	App *urfaveCli.App
 	Bc  *Blockchain
 }
 
+// NewCLI CLI constructor
 func NewCLI() *CLI {
 	var c CLI
 	app := urfaveCli.NewApp()
 	app.Name = "GlockChain"
 	app.Usage = "A golang blockchain application"
 	app.Version = "0.1.0.0"
+	app.Author = "atoyr"
 	c.App = app
 
-	c.Initialize()
+	c.initialize()
 
 	return &c
 }
 
-func (cli *CLI) Initialize() {
+func (cli *CLI) initialize() {
 	cli.App.Before = func(c *urfaveCli.Context) error {
 		cli.printExecute()
 		return nil
 	}
-	cli.App.Author = "atoyr"
-
-	// blockchain interactive interface
-	//cli.App.Action = func(c *urfaveCli.Context) error {
-	//return nil
-	//}
 	cli.App.Commands = []urfaveCli.Command{
 		{
 			Name:    "initialize",
