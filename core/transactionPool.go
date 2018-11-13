@@ -7,11 +7,13 @@ import (
 	"github.com/boltdb/bolt"
 )
 
+// TransactionPool Not take up transaction into block
 type TransactionPool struct {
 	Pool []*Transaction
 }
 
-func GetTransactionPool() *TransactionPool {
+// NewTransactionPool TransactionPool constructor
+func NewTransactionPool() *TransactionPool {
 	var txp TransactionPool
 	if dbExists(dbFile) == false {
 		log.Println("Not exists db file")
@@ -33,6 +35,7 @@ func GetTransactionPool() *TransactionPool {
 	return &txp
 }
 
+// AddTransaction Pool Transaciton
 func (txp *TransactionPool) AddTransaction(transaction *Transaction) {
 	if dbExists(dbFile) == false {
 		log.Println("Not exists db file")
@@ -51,6 +54,7 @@ func (txp *TransactionPool) AddTransaction(transaction *Transaction) {
 	txp.Pool = append(txp.Pool, transaction)
 }
 
+// ClearTransactionPool clear pool
 func (txp *TransactionPool) ClearTransactionPool() {
 	if dbExists(dbFile) == false {
 		log.Println("Not exists db file")

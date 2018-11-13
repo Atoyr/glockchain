@@ -23,6 +23,7 @@ type Transaction struct {
 	Output    []TXOutput
 }
 
+// Bytes Get Transaction Bytes
 func (tx *Transaction) Bytes() []byte {
 	var b []byte
 	txCopy := *tx
@@ -178,7 +179,7 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) *Transaction {
 	}
 	tx := Transaction{Version, []byte{}, []byte{}, inputs, outputs}
 	tx.Sign(wallet.PrivateKey)
-	txp := GetTransactionPool()
+	txp := NewTransactionPool()
 	txp.AddTransaction(&tx)
 	utxopool.AddUTXO(&tx)
 	return &tx

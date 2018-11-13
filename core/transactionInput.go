@@ -6,6 +6,7 @@ import (
 	"github.com/atoyr/glockchain/util"
 )
 
+// TXInput Transaction Input
 type TXInput struct {
 	PrevTXHash  []byte
 	PrevTXIndex int
@@ -13,6 +14,13 @@ type TXInput struct {
 	PubKey      []byte
 }
 
+// NewTXInput TXInput constructor
+func NewTXInput(prevTX Transaction, prevTXIndex int) *TXInput {
+	var txi TXInput
+	return &txi
+}
+
+// Hash hash Transaction input
 func (txi *TXInput) Hash() []byte {
 	var b []byte
 	b = append(b, txi.PrevTXHash...)
@@ -21,9 +29,4 @@ func (txi *TXInput) Hash() []byte {
 	b = append(b, txi.PubKey...)
 	hash := sha256.Sum256(b)
 	return hash[:]
-}
-
-func NewTXInput(prevTX Transaction, prevTXIndex int) *TXInput {
-	var txi TXInput
-	return &txi
 }
