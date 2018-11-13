@@ -9,6 +9,7 @@ import (
 	"github.com/atoyr/glockchain/util"
 )
 
+// ProofOfWork mining action with ProofOfWork
 type ProofOfWork struct {
 	block  *Block
 	target *big.Int
@@ -18,6 +19,7 @@ var maxnonce = math.MaxInt64
 
 const targetbits = 16
 
+// NewProofOfWork ProofOfWork constructor
 func NewProofOfWork(b *Block) *ProofOfWork {
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-targetbits))
@@ -27,6 +29,7 @@ func NewProofOfWork(b *Block) *ProofOfWork {
 	return &pow
 }
 
+// Run Execute ProofOfWork
 func (pow *ProofOfWork) Run() (int, []byte) {
 	var hashInt big.Int
 	var hash [32]byte

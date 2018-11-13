@@ -4,15 +4,19 @@ import (
 	"crypto/sha256"
 )
 
+// MerkleTree Transaction hash tree
 type MerkleTree struct {
 	RootNode *MerkleNode
 }
+
+// MerkleNode MerkleTree Node
 type MerkleNode struct {
 	Left  *MerkleNode
 	Right *MerkleNode
 	Data  []byte
 }
 
+// NewMerkleTree MerkleTree constructor
 func NewMerkleTree(data [][]byte) *MerkleTree {
 	var nodes []MerkleNode
 	if len(data)%2 != 0 {
@@ -33,6 +37,8 @@ func NewMerkleTree(data [][]byte) *MerkleTree {
 	mTree := MerkleTree{&nodes[0]}
 	return &mTree
 }
+
+// NewMerkleNode MerkleNode constructor
 func NewMerkleNode(left, right *MerkleNode, data []byte) *MerkleNode {
 	mNode := MerkleNode{}
 	if left == nil && right == nil {
