@@ -2,7 +2,6 @@ package core
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/gob"
 	"fmt"
 	"log"
@@ -18,17 +17,10 @@ type UTXO struct {
 	Index int
 }
 
-func (utxo *UTXO) Hash() []byte {
-	var hash [32]byte
-	utxoCopy := *utxo
-	hash = sha256.Sum256(utxoCopy.Serialize())
-	return hash[:]
-}
-
+// String is UTXO to string
 func (utxo *UTXO) String() string {
 	var lines []string
-	lines = append(lines, fmt.Sprintf("--- UTXO %x:", utxo.Hash()))
-	lines = append(lines, fmt.Sprintf("  Output "))
+	lines = append(lines, fmt.Sprintf("UTXO : %x", utxo.Key()))
 	lines = append(lines, fmt.Sprintf("  TX    %x", utxo.TX.Hash()))
 	lines = append(lines, fmt.Sprintf("  Index %d", utxo.Index))
 	lines = append(lines, fmt.Sprintf("    Value       %d", utxo.TX.Output[utxo.Index].Value))
@@ -36,10 +28,12 @@ func (utxo *UTXO) String() string {
 	return strings.Join(lines, "\n")
 }
 
+// Key is Gneerate UTXO Key
 func (utxo *UTXO) Key() []byte {
 	return append(utxo.TX.Hash(), util.Int2bytes(utxo.Index, 8)...)
 }
 
+// Serialize UTXO
 func (utxo *UTXO) Serialize() []byte {
 	var encoded bytes.Buffer
 	enc := gob.NewEncoder(&encoded)
@@ -51,7 +45,7 @@ func (utxo *UTXO) Serialize() []byte {
 	return encoded.Bytes()
 }
 
-// DeserializeUtxo deserialize tx
+// DeserializeUtxo deserialize UTXO
 func DeserializeUtxo(data []byte) UTXO {
 	var utxo UTXO
 	decoder := gob.NewDecoder(bytes.NewReader(data))
