@@ -2,9 +2,10 @@ package core
 
 import "log"
 
-// Version is Glockchain version
+// Version Glockchain version
 const Version = byte(0x00)
 
+// WalletVersion Wallet Version
 const WalletVersion = byte(0x00)
 
 const addressChecksumLength = 4

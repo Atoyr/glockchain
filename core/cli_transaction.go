@@ -12,7 +12,7 @@ func (cli *CLI) createTransaction(from, to string, amount int) {
 }
 
 func (cli *CLI) printTransactionPool() {
-	txp := GetTransactionPool()
+	txp := NewTransactionPool()
 	for _, tx := range txp.Pool {
 		fmt.Println(tx.String())
 		fmt.Println()
