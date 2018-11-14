@@ -8,32 +8,16 @@ import (
 	"github.com/boltdb/bolt"
 )
 
+// Blockchain is chain with block
+// tip is last block hash
 type Blockchain struct {
 	tip []byte
 }
 
-func (bc *Blockchain) AddBlock(block *Block) {
-	//var lastHash []byte
-	db := getBlockchainDatabase()
-	defer db.Close()
-	err := db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(blocksBucket))
-
-		if b.Get(block.Hash) != nil {
-			return nil
-		}
-
-		blockData := block.Serialize()
-		err := b.Put(block.Hash, blockData)
-		errorHandle(err)
-		err = b.Put([]byte("l"), block.Hash)
-		return nil
-
-	})
-	errorHandle(err)
-}
-
+// CreateBlockchain is create blockchain
+// if blockchain exists, error it
 func CreateBlockchain(address []byte) *Blockchain {
+	// TODO:(atoyr):return error
 	if dbExists(dbFile) {
 		log.Println("Exist db file")
 		os.Exit(1)
@@ -62,8 +46,10 @@ func CreateBlockchain(address []byte) *Blockchain {
 	return &bc
 }
 
+// GetBlockchain is Getting exist blockchain
 func GetBlockchain() (*Blockchain, []byte) {
 	var tip []byte
+	// TODO:(atoyr):return error
 	if dbExists(dbFile) == false {
 		fmt.Println("Not exist db file")
 		os.Exit(1)
@@ -80,6 +66,34 @@ func GetBlockchain() (*Blockchain, []byte) {
 	tip2 := make([]byte, len(tip))
 	copy(tip2, tip)
 	return &bc, tip2
+}
+
+// AddBlock is adding block into blockchain
+func (bc *Blockchain) AddBlock(block *Block) {
+	//var lastHash []byte
+	db := getBlockchainDatabase()
+	defer db.Close()
+	err := db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(blocksBucket))
+
+		if b.Get(block.Hash) != nil {
+			return nil
+		}
+
+		blockData := block.Serialize()
+		err := b.Put(block.Hash, blockData)
+		errorHandle(err)
+		err = b.Put([]byte("l"), block.Hash)
+		return nil
+
+	})
+	errorHandle(err)
+}
+
+// Iterator is created blockchain iterator
+func (bc *Blockchain) Iterator() *BlockchainIterator {
+	bci := BlockchainIterator{bc.tip}
+	return &bci
 }
 
 func getBlockchainDatabase() *bolt.DB {

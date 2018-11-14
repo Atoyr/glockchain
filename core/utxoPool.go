@@ -11,6 +11,7 @@ import (
 	"github.com/boltdb/bolt"
 )
 
+// UTXOPool is singleton
 type UTXOPool struct {
 	Pool map[string]*UTXO
 }
@@ -18,7 +19,7 @@ type UTXOPool struct {
 var utxopool *UTXOPool
 var once sync.Once
 
-func NewUTXOPool() *UTXOPool {
+func newUTXOPool() *UTXOPool {
 	var up UTXOPool
 	up.Pool = make(map[string]*UTXO)
 	if dbExists(dbFile) == false {
@@ -43,13 +44,15 @@ func NewUTXOPool() *UTXOPool {
 	return &up
 }
 
+// GetUTXOPool is create singleton instance
 func GetUTXOPool() *UTXOPool {
 	once.Do(func() {
-		utxopool = NewUTXOPool()
+		utxopool = newUTXOPool()
 	})
 	return utxopool
 }
 
+// AddUTXO is create UTXO and Pooling UTXP
 func (up *UTXOPool) AddUTXO(t *Transaction) {
 	if dbExists(dbFile) == false {
 		log.Println("Not exists db file")
@@ -77,6 +80,7 @@ func (up *UTXOPool) AddUTXO(t *Transaction) {
 	errorHandle(err)
 }
 
+// FindSpendableOutputs is finc tx from pool with pubkeyhash ando amount
 func (up *UTXOPool) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, map[string]UTXO) {
 	utxos := make(map[string]UTXO)
 	acc := 0
@@ -103,6 +107,7 @@ func (up *UTXOPool) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, ma
 	return acc, utxos
 }
 
+// FindUTXOs is find tx from pool with pubkeyhash
 func (up *UTXOPool) FindUTXOs(pubKeyHash []byte) (int, map[string]UTXO) {
 	utxos := make(map[string]UTXO)
 	balance := 0
@@ -126,24 +131,7 @@ func (up *UTXOPool) FindUTXOs(pubKeyHash []byte) (int, map[string]UTXO) {
 	return balance, utxos
 }
 
-func (up *UTXOPool) GetUTXO(txhash []byte, index int) *UTXO {
-	if dbExists(dbFile) == false {
-		log.Println("Not exists db file")
-		os.Exit(1)
-	}
-	var utxo UTXO
-	db := getBlockchainDatabase()
-	defer db.Close()
-	err := db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(utxoBucket))
-		encodeUtxo := b.Get(append(txhash, util.Int2bytes(index, 8)...))
-		utxo = DeserializeUtxo(encodeUtxo)
-		return nil
-	})
-	errorHandle(err)
-	return &utxo
-}
-
+// String is convert UTXOPool to string
 func (up *UTXOPool) String() string {
 	var lines []string
 	for _, utxo := range up.Pool {
