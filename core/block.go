@@ -94,7 +94,7 @@ func (block *Block) HashTransactions() []byte {
 	return mtree.RootNode.Data
 }
 
-// String is copnvert block to string
+// String is convert block to string
 func (block *Block) String() string {
 	var lines []string
 	lines = append(lines, fmt.Sprintf("Block : %x", block.Hash))
