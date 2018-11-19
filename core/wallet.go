@@ -26,6 +26,7 @@ func NewWallet() *Wallet {
 	return &wallet
 }
 
+// GetAddress is create address from pub/private key
 func (w Wallet) GetAddress() []byte {
 	pubKeyHash := HashPubKey(w.PublicKey)
 	versionPayload := append([]byte{WalletVersion}, pubKeyHash...)
@@ -52,6 +53,7 @@ func checksum(payload []byte) []byte {
 	return secondSHA[:addressChecksumLength]
 }
 
+// HashPubKey is hashing pubkey
 func HashPubKey(pubKey []byte) []byte {
 	pubSHA256 := sha256.Sum256(pubKey)
 	RIPEMD160Hasher := ripemd160.New()
@@ -64,6 +66,7 @@ func HashPubKey(pubKey []byte) []byte {
 	return pubRIPEMD160
 }
 
+// ValidateAddress is validation address
 func ValidateAddress(address []byte) bool {
 	pubKeyHash := util.Base58Decode(address)
 	if len(pubKeyHash)-addressChecksumLength < 0 {
@@ -77,6 +80,7 @@ func ValidateAddress(address []byte) bool {
 	return bytes.Compare(actualChecksum, targetChecksum) == 0
 }
 
+// AddressToPubKeyHash is convert address to pubkeyhash
 func AddressToPubKeyHash(address []byte) []byte {
 	a := util.Base58Decode(address)
 	pubKeyHash := a[1 : len(a)-4]

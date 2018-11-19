@@ -6,15 +6,12 @@ import (
 	"github.com/boltdb/bolt"
 )
 
+// BlockchainIterator is a blockchain iterator
 type BlockchainIterator struct {
 	currentHash []byte
 }
 
-func (bc *Blockchain) Iterator() *BlockchainIterator {
-	bci := BlockchainIterator{bc.tip}
-	return &bci
-}
-
+// Next is moved index for next
 func (bci *BlockchainIterator) Next() *Block {
 	var block *Block
 	db := getBlockchainDatabase()
