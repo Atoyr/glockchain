@@ -133,6 +133,13 @@ func (cli *CLI) initialize() {
 						return nil
 					},
 				},
+				{
+					Name:  "verify",
+					Usage: "verify transactions",
+					Action: func(c *urfaveCli.Context) error {
+						return nil
+					},
+				},
 			},
 		},
 		{
