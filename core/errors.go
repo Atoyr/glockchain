@@ -10,11 +10,13 @@ type glockchainCause interface {
 	GlockchainCause() bool
 }
 
+// GlockchainError is error type for GlockchainError
 type GlockchainError struct {
 	code    int
 	message string
 }
 
+// NewGlockchainError is GlockchainError constructor
 func NewGlockchainError(code int) error {
 	glockchainError := &GlockchainError{code, getErrorMessage(code)}
 	return glockchainError
@@ -24,8 +26,10 @@ func (e *GlockchainError) Error() string {
 	return fmt.Sprintf("Glockchain error %d : %s", e.code, e.message)
 }
 
+// GlockchainCause is decision GlockchainCause
 func (e *GlockchainError) GlockchainCause() bool { return true }
 
+// IsGlockchainCause is Error handling interface
 func IsGlockchainCause(err error) bool {
 	error, ok := errors.Cause(err).(glockchainCause)
 	return ok && error.GlockchainCause()
