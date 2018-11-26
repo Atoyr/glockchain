@@ -1,12 +1,27 @@
 package core
 
-import "github.com/pkg/errors"
+import (
+	"fmt"
 
-type glockchainError interface {
-	IsError() bool
+	"github.com/pkg/errors"
+)
+
+type glockchainCause interface {
+	GlockchainCause() bool
 }
 
-func isGlockchainError(err error) bool {
-	gerror, ok := errors.Cause(err).(glockchainError)
-	return ok && gerror.IsError()
+type GlockchainError struct {
+	code    int
+	message string
+}
+
+func (e *GlockchainError) Error() string {
+	return fmt.Sprintf("Glockchain error %d : %s", e.code, e.message)
+}
+
+func (e *GlockchainError) GlockchainCause() bool { return true }
+
+func IsGlockchainCause(err error) bool {
+	error, ok := errors.Cause(err).(glockchainCause)
+	return ok && error.GlockchainCause()
 }
