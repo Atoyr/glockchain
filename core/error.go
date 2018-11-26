@@ -15,6 +15,11 @@ type GlockchainError struct {
 	message string
 }
 
+func NewGlockchainError() error {
+	glockchainError := &GlockchainError{-1, "hoge"}
+	return glockchainError
+}
+
 func (e *GlockchainError) Error() string {
 	return fmt.Sprintf("Glockchain error %d : %s", e.code, e.message)
 }
