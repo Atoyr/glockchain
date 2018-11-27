@@ -46,6 +46,16 @@ func getErrorMessage(code int) string {
 		message = "DB update error"
 	case 91004:
 		message = "DB view error"
+	case 93001:
+		message = "Not have data into TXPool"
+	case 93002:
+		message = "Create coinbase tramsaction error"
+	case 93003:
+		message = "Create tramsaction error"
+	case 93005:
+		message = "Transaction signature error"
+	case 94001:
+		message = "Wallet not found"
 	default:
 		message = ""
 	}

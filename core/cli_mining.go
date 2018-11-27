@@ -3,7 +3,6 @@ package core
 import (
 	"fmt"
 	"log"
-	"os"
 	"time"
 )
 
@@ -12,12 +11,12 @@ func (cli *CLI) mining() {
 	fmt.Printf("Execute mining at %d-%d-%d %d:%d:%d\n", t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
 	txpool := NewTransactionPool()
 	if len(txpool.Pool) == 0 {
-		fmt.Println("Not have data into TXPool")
-		os.Exit(0)
+		fmt.Println(getErrorMessage(93001))
+		return
 	}
 	bc, tip, err := GetBlockchain()
 	if err != nil {
-		log.Panic(err)
+		log.Fatal(err)
 	}
 	block := NewBlock(txpool.Pool, tip)
 	bc.AddBlock(block)

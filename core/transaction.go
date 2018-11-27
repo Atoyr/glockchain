@@ -10,8 +10,9 @@ import (
 	"fmt"
 	"log"
 	"math/big"
-	"os"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // Transaction TX Data
@@ -48,17 +49,20 @@ func (tx *Transaction) Hash() []byte {
 }
 
 // Sign sign TX
-func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey) {
+func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey) error {
 	txCopy := tx.TrimmedCopy()
 	for vindex := range txCopy.Input {
 		txCopy.Input[vindex].Signature = []byte{}
 		txCopyHash := txCopy.Hash()
 		r, s, err := ecdsa.Sign(rand.Reader, &privateKey, txCopyHash)
-		errorHandle(err)
+		if err != nil {
+			return errors.Wrap(err, getErrorMessage(94001))
+		}
 		signature := append(r.Bytes(), s.Bytes()...)
 		tx.Input[vindex].Signature = signature
 		txCopy.Input[vindex].Signature = nil
 	}
+	return nil
 }
 
 // Verify verify TX
@@ -133,7 +137,6 @@ func (tx *Transaction) Serialize() []byte {
 	err := enc.Encode(tx)
 	if err != nil {
 		log.Panic(err)
-		os.Exit(1)
 	}
 	return encoded.Bytes()
 }
@@ -150,7 +153,7 @@ func DeserializeTransaction(data []byte) Transaction {
 }
 
 // NewTransaction create New TX
-func NewTransaction(wallet *Wallet, to []byte, amount int) *Transaction {
+func NewTransaction(wallet *Wallet, to []byte, amount int) (*Transaction, error) {
 	var inputs []TXInput
 	var outputs []TXOutput
 	pubKeyHash := HashPubKey(wallet.PublicKey)
@@ -178,15 +181,18 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) *Transaction {
 		outputs = append(outputs, *NewTXOutput(diffamount, wallet.GetAddress()))
 	}
 	tx := Transaction{Version, []byte{}, []byte{}, inputs, outputs}
-	tx.Sign(wallet.PrivateKey)
+	err := tx.Sign(wallet.PrivateKey)
+	if err != nil {
+		return nil, err
+	}
 	txp := NewTransactionPool()
 	txp.AddTransaction(&tx)
 	utxopool.AddUTXO(&tx)
-	return &tx
+	return &tx, nil
 }
 
 // NewCoinbaseTX Create New Coinbase TX
-func NewCoinbaseTX(value int, to []byte) *Transaction {
+func NewCoinbaseTX(value int, to []byte) (*Transaction, error) {
 	txi := &TXInput{[]byte{}, -1, []byte{}, []byte{}}
 	txo := NewTXOutput(value, to)
 	var tx Transaction
@@ -195,6 +201,9 @@ func NewCoinbaseTX(value int, to []byte) *Transaction {
 	tx.Output = []TXOutput{*txo}
 	wallets := NewWallets()
 	wallet := wallets.GetWallet(to)
-	tx.Sign(wallet.PrivateKey)
-	return &tx
+	err := tx.Sign(wallet.PrivateKey)
+	if err != nil {
+		return nil, err
+	}
+	return &tx, nil
 }

@@ -23,7 +23,9 @@ func NewTransactionPool() *TransactionPool {
 	defer db.Close()
 	err := db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(txpoolBucket))
-		errorHandle(err)
+		if err != nil {
+			return err
+		}
 		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			tran := DeserializeTransaction(v)
@@ -31,7 +33,9 @@ func NewTransactionPool() *TransactionPool {
 		}
 		return nil
 	})
-	errorHandle(err)
+	if err != nil {
+		return nil
+	}
 	return &txp
 }
 

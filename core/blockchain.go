@@ -20,10 +20,14 @@ func CreateBlockchain(address []byte) (*Blockchain, error) {
 		return nil, NewGlockchainError(91002)
 	}
 	var tip []byte
-	cbtx := NewCoinbaseTX(100, address)
+	cbtx, err := NewCoinbaseTX(100, address)
+	if err != nil {
+		return nil, errors.Wrap(err, getErrorMessage(93002))
+	}
+
 	genesis := NewGenesisBlock(cbtx)
 	db := getBlockchainDatabase()
-	err := db.Update(func(tx *bolt.Tx) error {
+	err = db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucket([]byte(blocksBucket))
 		if err != nil {
 			return err
