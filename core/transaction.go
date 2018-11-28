@@ -185,7 +185,10 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) (*Transaction, error)
 	if err != nil {
 		return nil, err
 	}
-	txp := NewTransactionPool()
+	txp, err := NewTransactionPool()
+	if err != nil {
+		return nil, err
+	}
 	txp.AddTransaction(&tx)
 	utxopool.AddUTXO(&tx)
 	return &tx, nil
