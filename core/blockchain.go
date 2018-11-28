@@ -48,8 +48,11 @@ func CreateBlockchain(address []byte) (*Blockchain, error) {
 		return nil, errors.Wrap(err, getErrorMessage(91003))
 	}
 
-	up := GetUTXOPool()
+	up, err := GetUTXOPool()
 	up.AddUTXO(genesis.Transactions[0])
+	if err != nil {
+		return nil, err
+	}
 
 	bc := Blockchain{tip}
 	return &bc, nil

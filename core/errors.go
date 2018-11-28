@@ -52,6 +52,8 @@ func getErrorMessage(code int) string {
 		message = "Create coinbase tramsaction error"
 	case 93003:
 		message = "Create tramsaction error"
+	case 93004:
+		message = "Not enough funds"
 	case 93005:
 		message = "Transaction signature error"
 	case 94001:

@@ -157,10 +157,13 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) (*Transaction, error)
 	var inputs []TXInput
 	var outputs []TXOutput
 	pubKeyHash := HashPubKey(wallet.PublicKey)
-	utxopool := GetUTXOPool()
+	utxopool, err := GetUTXOPool()
+	if err != nil {
+		return nil, err
+	}
 	acc, utxos := utxopool.FindSpendableOutputs(pubKeyHash, amount)
 	if acc < amount {
-		log.Panic("ERROR : Not enough funds")
+		return nil, NewGlockchainError(93003)
 	}
 
 	inputs = make([]TXInput, len(utxos))
@@ -181,7 +184,7 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) (*Transaction, error)
 		outputs = append(outputs, *NewTXOutput(diffamount, wallet.GetAddress()))
 	}
 	tx := Transaction{Version, []byte{}, []byte{}, inputs, outputs}
-	err := tx.Sign(wallet.PrivateKey)
+	err = tx.Sign(wallet.PrivateKey)
 	if err != nil {
 		return nil, err
 	}

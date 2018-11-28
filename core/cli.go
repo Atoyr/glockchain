@@ -203,6 +203,9 @@ func (cli *CLI) printChain() {
 }
 
 func (cli *CLI) printUtxo() {
-	up := GetUTXOPool()
-	fmt.Println(up)
+	utxopool, err := GetUTXOPool()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(utxopool)
 }

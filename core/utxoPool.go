@@ -2,13 +2,12 @@ package core
 
 import (
 	"encoding/hex"
-	"log"
-	"os"
 	"strings"
 	"sync"
 
 	"github.com/atoyr/glockchain/util"
 	"github.com/boltdb/bolt"
+	"github.com/pkg/errors"
 )
 
 // UTXOPool is singleton
@@ -19,19 +18,20 @@ type UTXOPool struct {
 var utxopool *UTXOPool
 var once sync.Once
 
-func newUTXOPool() *UTXOPool {
+func newUTXOPool() (*UTXOPool, error) {
 	var up UTXOPool
 	up.Pool = make(map[string]*UTXO)
 	if dbExists(dbFile) == false {
-		log.Println("Not exists db file")
-		os.Exit(1)
+		return nil, NewGlockchainError(91001)
 	}
 
 	db := getBlockchainDatabase()
 	defer db.Close()
 	err := db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(utxoBucket))
-		errorHandle(err)
+		if err != nil {
+			return err
+		}
 		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			key := hex.EncodeToString(k)
@@ -40,29 +40,38 @@ func newUTXOPool() *UTXOPool {
 		}
 		return nil
 	})
-	errorHandle(err)
-	return &up
+	if err != nil {
+		return nil, errors.Wrap(err, getErrorMessage(91003))
+	}
+	return &up, nil
 }
 
 // GetUTXOPool is create singleton instance
-func GetUTXOPool() *UTXOPool {
+func GetUTXOPool() (*UTXOPool, error) {
+	var err error
 	once.Do(func() {
-		utxopool = newUTXOPool()
+		utxopool, err = newUTXOPool()
 	})
-	return utxopool
+	if err != nil {
+		return nil, err
+	}
+
+	return utxopool, nil
 }
 
 // AddUTXO is create UTXO and Pooling UTXP
-func (up *UTXOPool) AddUTXO(t *Transaction) {
+func (up *UTXOPool) AddUTXO(t *Transaction) error {
 	if dbExists(dbFile) == false {
-		log.Println("Not exists db file")
-		os.Exit(1)
+		return NewGlockchainError(91001)
 	}
+
 	db := getBlockchainDatabase()
 	defer db.Close()
 	err := db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(utxoBucket))
-		errorHandle(err)
+		if err != nil {
+			return err
+		}
 		for _, input := range t.Input {
 			key := getUTXOPoolKey(input.PrevTXHash, input.PrevTXIndex)
 			b.Delete(key)
@@ -71,13 +80,17 @@ func (up *UTXOPool) AddUTXO(t *Transaction) {
 		for i := range t.Output {
 			utxo := UTXO{t, i}
 			err = b.Put(utxo.Key(), utxo.Serialize())
-			errorHandle(err)
+			if err != nil {
+				return err
+			}
 			up.Pool[hex.EncodeToString(utxo.Key())] = &utxo
 		}
-		errorHandle(err)
 		return nil
 	})
-	errorHandle(err)
+	if err != nil {
+		return errors.Wrap(err, getErrorMessage(91003))
+	}
+	return nil
 }
 
 // FindSpendableOutputs is finc tx from pool with pubkeyhash ando amount
@@ -87,7 +100,7 @@ func (up *UTXOPool) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, ma
 	db := getBlockchainDatabase()
 	defer db.Close()
 
-	err := db.View(func(tx *bolt.Tx) error {
+	db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(utxoBucket))
 		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
@@ -103,7 +116,6 @@ func (up *UTXOPool) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, ma
 		}
 		return nil
 	})
-	errorHandle(err)
 	return acc, utxos
 }
 
@@ -114,7 +126,7 @@ func (up *UTXOPool) FindUTXOs(pubKeyHash []byte) (int, map[string]UTXO) {
 	db := getBlockchainDatabase()
 	defer db.Close()
 
-	err := db.View(func(tx *bolt.Tx) error {
+	db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(utxoBucket))
 		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
@@ -127,7 +139,6 @@ func (up *UTXOPool) FindUTXOs(pubKeyHash []byte) (int, map[string]UTXO) {
 		}
 		return nil
 	})
-	errorHandle(err)
 	return balance, utxos
 }
 
