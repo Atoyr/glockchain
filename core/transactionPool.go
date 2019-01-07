@@ -1,10 +1,8 @@
 package core
 
 import (
-	"log"
-	"os"
-
 	"github.com/boltdb/bolt"
+	"github.com/pkg/errors"
 )
 
 // TransactionPool Not take up transaction into block
@@ -13,17 +11,18 @@ type TransactionPool struct {
 }
 
 // NewTransactionPool TransactionPool constructor
-func NewTransactionPool() *TransactionPool {
+func NewTransactionPool() (*TransactionPool, error) {
 	var txp TransactionPool
 	if dbExists(dbFile) == false {
-		log.Println("Not exists db file")
-		os.Exit(1)
+		return nil, NewGlockchainError(91001)
 	}
 	db := getBlockchainDatabase()
 	defer db.Close()
 	err := db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(txpoolBucket))
-		errorHandle(err)
+		if err != nil {
+			return err
+		}
 		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			tran := DeserializeTransaction(v)
@@ -31,43 +30,49 @@ func NewTransactionPool() *TransactionPool {
 		}
 		return nil
 	})
-	errorHandle(err)
-	return &txp
+	if err != nil {
+		return nil, errors.Wrap(err, getErrorMessage(91003))
+	}
+	return &txp, nil
 }
 
 // AddTransaction Pool Transaciton
-func (txp *TransactionPool) AddTransaction(transaction *Transaction) {
+func (txp *TransactionPool) AddTransaction(transaction *Transaction) error {
 	if dbExists(dbFile) == false {
-		log.Println("Not exists db file")
-		os.Exit(1)
+		return NewGlockchainError(91001)
 	}
 	db := getBlockchainDatabase()
 	defer db.Close()
 	err := db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(txpoolBucket))
-		errorHandle(err)
+		if err != nil {
+			return err
+		}
 		err = b.Put(transaction.Hash(), transaction.Serialize())
-		errorHandle(err)
-		return nil
+		return err
 	})
-	errorHandle(err)
+	if err != nil {
+		return errors.Wrap(err, getErrorMessage(91003))
+	}
 	txp.Pool = append(txp.Pool, transaction)
+	return nil
 }
 
 // ClearTransactionPool clear pool
-func (txp *TransactionPool) ClearTransactionPool() {
+func (txp *TransactionPool) ClearTransactionPool() error {
 	if dbExists(dbFile) == false {
-		log.Println("Not exists db file")
-		os.Exit(1)
+		return NewGlockchainError(91001)
 	}
 	db := getBlockchainDatabase()
 	defer db.Close()
 	err := db.Update(func(tx *bolt.Tx) error {
 		tx.DeleteBucket([]byte(txpoolBucket))
 		_, err := tx.CreateBucket([]byte(txpoolBucket))
-		errorHandle(err)
-		return nil
+		return err
 	})
-	errorHandle(err)
+	if err != nil {
+		return errors.Wrap(err, getErrorMessage(91003))
+	}
 	txp.Pool = make([]*Transaction, 0, 1)
+	return nil
 }

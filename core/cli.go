@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"log"
 
 	urfaveCli "github.com/urfave/cli"
 )
@@ -171,19 +172,25 @@ func (cli *CLI) printExecute() {
 func (cli *CLI) initializeBlockchain() {
 	wallets := NewWallets()
 	address := wallets.CreateWallet()
+	cli.createBlockchain(address)
 	wallets.SaveToFile()
-	a := []byte(address)
-	CreateBlockchain(a)
 	fmt.Printf("address: %s\n", address)
 	cli.printChain()
 }
 func (cli *CLI) createBlockchain(address string) {
 	a := []byte(address)
-	CreateBlockchain(a)
+	_, err := CreateBlockchain(a)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (cli *CLI) printChain() {
-	cli.Bc, _ = GetBlockchain()
+	var err error
+	cli.Bc, _, err = GetBlockchain()
+	if err != nil {
+		log.Fatal(err)
+	}
 	bci := cli.Bc.Iterator()
 	for {
 		block := bci.Next()
@@ -196,6 +203,9 @@ func (cli *CLI) printChain() {
 }
 
 func (cli *CLI) printUtxo() {
-	up := GetUTXOPool()
-	fmt.Println(up)
+	utxopool, err := GetUTXOPool()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(utxopool)
 }

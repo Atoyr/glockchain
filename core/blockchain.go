@@ -1,11 +1,10 @@
 package core
 
 import (
-	"fmt"
-	"log"
 	"os"
 
 	"github.com/boltdb/bolt"
+	"github.com/pkg/errors"
 )
 
 // Blockchain is chain with block
@@ -16,43 +15,55 @@ type Blockchain struct {
 
 // CreateBlockchain is create blockchain
 // if blockchain exists, error it
-func CreateBlockchain(address []byte) *Blockchain {
-	// TODO:(atoyr):return error
+func CreateBlockchain(address []byte) (*Blockchain, error) {
 	if dbExists(dbFile) {
-		log.Println("Exist db file")
-		os.Exit(1)
+		return nil, NewGlockchainError(91002)
 	}
 	var tip []byte
-	cbtx := NewCoinbaseTX(100, address)
+	cbtx, err := NewCoinbaseTX(100, address)
+	if err != nil {
+		return nil, errors.Wrap(err, getErrorMessage(93002))
+	}
+
 	genesis := NewGenesisBlock(cbtx)
 	db := getBlockchainDatabase()
-	err := db.Update(func(tx *bolt.Tx) error {
+	err = db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucket([]byte(blocksBucket))
-		errorHandle(err)
+		if err != nil {
+			return err
+		}
 		err = b.Put(genesis.Hash, genesis.Serialize())
-		errorHandle(err)
+		if err != nil {
+			return err
+		}
 		err = b.Put([]byte("l"), genesis.Hash)
-		errorHandle(err)
+		if err != nil {
+			return err
+		}
 		tip = genesis.Hash
 		return nil
 	})
-	errorHandle(err)
 	db.Close()
+	if err != nil {
+		return nil, errors.Wrap(err, getErrorMessage(91003))
+	}
 
-	up := GetUTXOPool()
+	up, err := GetUTXOPool()
+	if err != nil {
+		return nil, err
+	}
 	up.AddUTXO(genesis.Transactions[0])
 
 	bc := Blockchain{tip}
-	return &bc
+	return &bc, nil
 }
 
 // GetBlockchain is Getting exist blockchain
-func GetBlockchain() (*Blockchain, []byte) {
+func GetBlockchain() (*Blockchain, []byte, error) {
 	var tip []byte
 	// TODO:(atoyr):return error
 	if dbExists(dbFile) == false {
-		fmt.Println("Not exist db file")
-		os.Exit(1)
+		return nil, nil, NewGlockchainError(91001)
 	}
 	db := getBlockchainDatabase()
 	defer db.Close()
@@ -65,7 +76,7 @@ func GetBlockchain() (*Blockchain, []byte) {
 	bc := Blockchain{tip}
 	tip2 := make([]byte, len(tip))
 	copy(tip2, tip)
-	return &bc, tip2
+	return &bc, tip2, nil
 }
 
 // AddBlock is adding block into blockchain

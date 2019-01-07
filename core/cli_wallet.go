@@ -24,7 +24,10 @@ func (cli *CLI) getBalance(address string) {
 	if !ValidateAddress([]byte(address)) {
 		log.Panic("ERROR: Address is not valid")
 	}
-	utxopool := GetUTXOPool()
+	utxopool, err := GetUTXOPool()
+	if err != nil {
+		log.Fatal(err)
+	}
 	pubKeyHash := AddressToPubKeyHash([]byte(address))
 	balance, _ := utxopool.FindUTXOs(pubKeyHash)
 	fmt.Printf("Balance of %s : %d \n", address, balance)
@@ -32,7 +35,10 @@ func (cli *CLI) getBalance(address string) {
 
 func (cli *CLI) getAllBalance() {
 	wallets := NewWallets()
-	utxopool := GetUTXOPool()
+	utxopool, err := GetUTXOPool()
+	if err != nil {
+		log.Fatal(err)
+	}
 	for address := range wallets.Wallets {
 		pubKeyHash := AddressToPubKeyHash([]byte(address))
 		balance, _ := utxopool.FindUTXOs(pubKeyHash)
