@@ -24,6 +24,11 @@ type Transaction struct {
 	Output    []TXOutput
 }
 
+// IsCoinbase is return this transaction is coinbase?
+func (tx *Transaction) IsCoinbase() bool {
+	return len(tx.Input) == 1 && len(tx.Input[0].PrevTXHash) == 0 && tx.Input[0].PrevTXIndex == -1
+}
+
 // Bytes Get Transaction Bytes
 func (tx *Transaction) Bytes() []byte {
 	var b []byte
@@ -67,6 +72,9 @@ func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey) error {
 
 // Verify verify TX
 func (tx *Transaction) Verify() bool {
+	if tx.IsCoinbase() {
+		return true
+	}
 	txCopy := tx.TrimmedCopy()
 	curve := elliptic.P256()
 	for vindex, vin := range txCopy.Input {
