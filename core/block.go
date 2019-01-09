@@ -40,9 +40,6 @@ func NewBlock(transactions []*Transaction, prevBlockHash []byte) (block *Block, 
 	block.Nonce = nonce
 	block.Hash = hash
 	block.TXHash = block.HashTransactions()
-	for i := range block.Transactions {
-		block.Transactions[i].BlockHash = hash
-	}
 	return
 }
 

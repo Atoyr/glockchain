@@ -17,11 +17,10 @@ import (
 
 // Transaction TX Data
 type Transaction struct {
-	Version   byte
-	ID        []byte
-	BlockHash []byte
-	Input     []TXInput
-	Output    []TXOutput
+	Version byte
+	ID      []byte
+	Input   []TXInput
+	Output  []TXOutput
 }
 
 // IsCoinbase is return this transaction is coinbase?
@@ -34,7 +33,6 @@ func (tx *Transaction) Bytes() []byte {
 	var b []byte
 	txCopy := *tx
 	b = append(b, txCopy.Version)
-	b = append(b, txCopy.BlockHash...)
 	for _, in := range txCopy.Input {
 		b = append(b, in.Hash()...)
 	}
@@ -111,7 +109,7 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 	for _, vout := range tx.Output {
 		outputs = append(outputs, TXOutput{vout.Value, vout.PubKeyHash})
 	}
-	txCopy := Transaction{tx.Version, tx.ID, []byte{}, inputs, outputs}
+	txCopy := Transaction{tx.Version, []byte{}, inputs, outputs}
 	return txCopy
 }
 
@@ -119,7 +117,6 @@ func (tx *Transaction) String() string {
 	var lines []string
 	lines = append(lines, fmt.Sprintf("Transaction  : %x", tx.Hash()))
 	lines = append(lines, fmt.Sprintf("  version    : %x", tx.Version))
-	lines = append(lines, fmt.Sprintf("  BlockHash  : %x", tx.BlockHash))
 	lines = append(lines, fmt.Sprintf("  Inputs     : %d", len(tx.Input)))
 	for i, in := range tx.Input {
 		lines = append(lines, fmt.Sprintf("    Input %d", i))
@@ -168,6 +165,7 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) (*Transaction, error)
 	if err != nil {
 		return nil, err
 	}
+
 	acc, utxos := utxopool.FindSpendableOutputs(pubKeyHash, amount)
 	if acc < amount {
 		return nil, NewGlockchainError(93003)
@@ -190,7 +188,10 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) (*Transaction, error)
 	if diffamount > 0 {
 		outputs = append(outputs, *NewTXOutput(diffamount, wallet.GetAddress()))
 	}
-	tx := Transaction{Version, []byte{}, []byte{}, inputs, outputs}
+
+	tx := Transaction{Version, []byte{}, inputs, outputs}
+	tx.ID = tx.Hash()
+
 	err = tx.Sign(wallet.PrivateKey)
 	if err != nil {
 		return nil, err
