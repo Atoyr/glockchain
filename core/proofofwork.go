@@ -17,16 +17,20 @@ type ProofOfWork struct {
 
 var maxnonce = math.MaxInt64
 
-const targetbits = 16
+const targetbits = 24
 
 // NewProofOfWork ProofOfWork constructor
-func NewProofOfWork(b *Block) *ProofOfWork {
+func NewProofOfWork(b *Block) (pow *ProofOfWork, err error) {
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-targetbits))
-
-	pow := ProofOfWork{b, target}
-
-	return &pow
+	for _, t := range b.Transactions {
+		if t.Verify() == false {
+			err = NewGlockchainError(93006)
+			return
+		}
+	}
+	pow = &ProofOfWork{b, target}
+	return
 }
 
 // Run Execute ProofOfWork

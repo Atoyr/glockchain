@@ -77,22 +77,21 @@ func (tx *Transaction) Verify() bool {
 	}
 	txCopy := tx.TrimmedCopy()
 	curve := elliptic.P256()
+
+	var getXY func(b []byte) (x, y big.Int)
+	getXY = func(b []byte) (x, y big.Int) {
+		sigLen := len(b)
+		x.SetBytes(b[:(sigLen / 2)])
+		y.SetBytes(b[(sigLen / 2):])
+		return
+	}
 	for vindex, vin := range txCopy.Input {
 		hashPubKey := HashPubKey(vin.PubKey)
 		txCopy.Input[vindex].Signature = hashPubKey
 		txHash := txCopy.Hash()
+		r, s := getXY(vin.Signature)
+		x, y := getXY(vin.PubKey)
 
-		r := big.Int{}
-		s := big.Int{}
-		sigLen := len(vin.Signature)
-		r.SetBytes(vin.Signature[:(sigLen / 2)])
-		s.SetBytes(vin.Signature[(sigLen / 2):])
-
-		x := big.Int{}
-		y := big.Int{}
-		keyLen := len(vin.PubKey)
-		x.SetBytes(vin.PubKey[:(keyLen / 2)])
-		y.SetBytes(vin.PubKey[(keyLen / 2):])
 		rawPubKey := ecdsa.PublicKey{Curve: curve, X: &x, Y: &y}
 		if ecdsa.Verify(&rawPubKey, txHash, &r, &s) == false {
 			return false

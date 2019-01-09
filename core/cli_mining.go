@@ -21,7 +21,10 @@ func (cli *CLI) mining() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	block := NewBlock(txpool.Pool, tip)
+	block, err := NewBlock(txpool.Pool, tip)
+	if err != nil {
+		log.Fatal(err)
+	}
 	bc.AddBlock(block)
 	txpool.ClearTransactionPool()
 	t = time.Now()

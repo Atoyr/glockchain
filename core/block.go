@@ -26,12 +26,15 @@ type Block struct {
 
 // NewBlock is block constructor
 // transactions is the transaction you want to add to the block
-func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
-	var block Block
+func NewBlock(transactions []*Transaction, prevBlockHash []byte) (block *Block, err error) {
+	block = &Block{}
 	block.Timestamp = time.Now().Unix()
 	block.Transactions = transactions
 	block.PreviousHash = prevBlockHash
-	pow := NewProofOfWork(&block)
+	pow, err := NewProofOfWork(block)
+	if err != nil {
+		return nil, err
+	}
 	nonce, hash := pow.Run()
 
 	block.Nonce = nonce
@@ -40,7 +43,7 @@ func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
 	for i := range block.Transactions {
 		block.Transactions[i].BlockHash = hash
 	}
-	return &block
+	return
 }
 
 // ToHash converts block to hash
@@ -58,7 +61,7 @@ func (block *Block) ToHash() []byte {
 // NewGenesisBlock is created genesis block
 // tx is the coinbase transaction
 func NewGenesisBlock(tx *Transaction) *Block {
-	block := NewBlock([]*Transaction{tx}, []byte{})
+	block, _ := NewBlock([]*Transaction{tx}, []byte{})
 	return block
 }
 
