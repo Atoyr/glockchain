@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/gob"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"math/big"
@@ -53,6 +54,9 @@ func (tx *Transaction) Hash() []byte {
 
 // Sign sign TX
 func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey) error {
+	if tx.IsCoinbase() {
+		return nil
+	}
 	txCopy := tx.TrimmedCopy()
 	for vindex := range txCopy.Input {
 		txCopy.Input[vindex].Signature = []byte{}
@@ -69,7 +73,7 @@ func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey) error {
 }
 
 // Verify verify TX
-func (tx *Transaction) Verify() bool {
+func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 	if tx.IsCoinbase() {
 		return true
 	}
@@ -83,12 +87,15 @@ func (tx *Transaction) Verify() bool {
 		y.SetBytes(b[(sigLen / 2):])
 		return
 	}
-	for vindex, vin := range txCopy.Input {
-		hashPubKey := HashPubKey(vin.PubKey)
+	for vindex, vin := range tx.Input {
+		prevTX := prevTXs[hex.EncodeToString(vin.PrevTXHash)]
+		hashPubKey := prevTX.Output[vin.PrevTXIndex].PubKeyHash
 		txCopy.Input[vindex].Signature = hashPubKey
 		txHash := txCopy.Hash()
 		r, s := getXY(vin.Signature)
 		x, y := getXY(vin.PubKey)
+		log.Printf("%x", vin.Signature)
+		log.Printf("%x", vin.PubKey)
 
 		rawPubKey := ecdsa.PublicKey{Curve: curve, X: &x, Y: &y}
 		if ecdsa.Verify(&rawPubKey, txHash, &r, &s) == false {
@@ -104,7 +111,7 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 	var outputs []TXOutput
 
 	for _, vin := range tx.Input {
-		inputs = append(inputs, TXInput{vin.PrevTXHash, vin.PrevTXIndex, nil, nil})
+		inputs = append(inputs, TXInput{vin.PrevTXHash, vin.PrevTXIndex, nil, vin.PubKey})
 	}
 	for _, vout := range tx.Output {
 		outputs = append(outputs, TXOutput{vout.Value, vout.PubKeyHash})
