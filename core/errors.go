@@ -38,6 +38,8 @@ func IsGlockchainCause(err error) bool {
 func getErrorMessage(code int) string {
 	var message string
 	switch code {
+	case 10001:
+		message = "interface conversion error"
 	case 91001:
 		message = "DB file not exist"
 	case 91002:
@@ -58,6 +60,8 @@ func getErrorMessage(code int) string {
 		message = "Transaction signature error"
 	case 93006:
 		message = "Transaction is invalid"
+	case 93007:
+		message = "Transaction not found"
 	case 94001:
 		message = "Wallet not found"
 	default:

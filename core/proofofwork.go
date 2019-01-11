@@ -2,6 +2,7 @@ package core
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"math"
 	"math/big"
@@ -11,8 +12,9 @@ import (
 
 // ProofOfWork mining action with ProofOfWork
 type ProofOfWork struct {
-	block  *Block
-	target *big.Int
+	blockchain *Blockchain
+	block      *Block
+	target     *big.Int
 }
 
 var maxnonce = math.MaxInt64
@@ -20,16 +22,28 @@ var maxnonce = math.MaxInt64
 const targetbits = 24
 
 // NewProofOfWork ProofOfWork constructor
-func NewProofOfWork(b *Block) (pow *ProofOfWork, err error) {
+func NewProofOfWork(bc *Blockchain, b *Block) (pow *ProofOfWork, err error) {
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-targetbits))
 	for _, t := range b.Transactions {
-		if t.Verify() == false {
-			err = NewGlockchainError(93006)
-			return
+		if t.IsCoinbase() == false {
+			prevTXs := make(map[string]Transaction)
+			for _, in := range t.Input {
+				if tx, err := bc.FindTX(in.PrevTXHash); err == nil {
+					txid := hex.EncodeToString(in.PrevTXHash)
+					prevTXs[txid] = *tx
+				} else {
+					err = NewGlockchainError(93005)
+					return nil, err
+				}
+			}
+			if t.Verify(prevTXs) == false {
+				err = NewGlockchainError(93006)
+				return
+			}
 		}
 	}
-	pow = &ProofOfWork{b, target}
+	pow = &ProofOfWork{bc, b, target}
 	return
 }
 

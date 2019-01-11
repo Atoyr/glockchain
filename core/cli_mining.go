@@ -21,7 +21,7 @@ func (cli *CLI) mining() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	block, err := NewBlock(txpool.Pool, tip)
+	block, err := NewBlock(txpool.Pool, bc, tip)
 	if err != nil {
 		log.Fatal(err)
 	}

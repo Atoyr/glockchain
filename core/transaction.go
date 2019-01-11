@@ -13,6 +13,7 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/cbergoon/merkletree"
 	"github.com/pkg/errors"
 )
 
@@ -52,6 +53,18 @@ func (tx *Transaction) Hash() []byte {
 	return hash2[:]
 }
 
+// CalculateHash is Hash for Merkletree
+func (tx Transaction) CalculateHash() ([]byte, error) {
+	return tx.Hash(), nil
+}
+
+func (tx Transaction) Equals(other merkletree.Content) (bool, error) {
+	if temptx, ok := other.(Transaction); ok {
+		return fmt.Sprintf("%x", tx.ID) == fmt.Sprintf("%x", temptx.ID), nil
+	}
+	return false, NewGlockchainError(10001)
+}
+
 // Sign sign TX
 func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey) error {
 	if tx.IsCoinbase() {
@@ -88,6 +101,7 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 		return
 	}
 	for vindex, vin := range tx.Input {
+		log.Printf(hex.EncodeToString(vin.PrevTXHash))
 		prevTX := prevTXs[hex.EncodeToString(vin.PrevTXHash)]
 		hashPubKey := prevTX.Output[vin.PrevTXIndex].PubKeyHash
 		txCopy.Input[vindex].Signature = hashPubKey
@@ -182,7 +196,7 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) (*Transaction, error)
 	index := 0
 	for _, utxo := range utxos {
 		var txin TXInput
-		txin.PrevTXHash = utxo.TX.Hash()
+		txin.PrevTXHash = utxo.TX.ID
 		txin.PrevTXIndex = utxo.Index
 		txin.PubKey = wallet.PublicKey
 		inputs[index] = txin

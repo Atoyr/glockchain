@@ -25,7 +25,7 @@ func CreateBlockchain(address []byte) (*Blockchain, error) {
 		return nil, errors.Wrap(err, getErrorMessage(93002))
 	}
 
-	genesis := NewGenesisBlock(cbtx)
+	genesis, _ := NewGenesisBlock(cbtx)
 	db := getBlockchainDatabase()
 	err = db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucket([]byte(blocksBucket))
@@ -105,6 +105,23 @@ func (bc *Blockchain) AddBlock(block *Block) {
 func (bc *Blockchain) Iterator() *BlockchainIterator {
 	bci := BlockchainIterator{bc.tip}
 	return &bci
+}
+
+func (bc *Blockchain) FindTX(txid []byte) (*Transaction, error) {
+	emptyTx := Transaction{}
+	bci := bc.Iterator()
+	for {
+		block := bci.Next()
+		if block.VerifyTX(txid) {
+			if tx, err := block.FindTX(txid); err == nil {
+				return tx, nil
+			}
+		}
+		if len(block.PreviousHash) == 0 {
+			break
+		}
+	}
+	return &emptyTx, NewGlockchainError(93007)
 }
 
 func getBlockchainDatabase() *bolt.DB {
