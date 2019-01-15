@@ -30,7 +30,7 @@ func (utxo *UTXO) String() string {
 
 // Key is Gneerate UTXO Key
 func (utxo *UTXO) Key() []byte {
-	return append(utxo.TX.Hash(), util.Int2bytes(utxo.Index, 8)...)
+	return append(utxo.TX.ID, util.Int2bytes(utxo.Index, 8)...)
 }
 
 // Serialize UTXO

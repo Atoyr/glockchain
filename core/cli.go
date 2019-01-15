@@ -179,8 +179,8 @@ func (cli *CLI) printExecute() {
 func (cli *CLI) initializeBlockchain() {
 	wallets := NewWallets()
 	address := wallets.CreateWallet()
-	cli.createBlockchain(address)
 	wallets.SaveToFile()
+	cli.createBlockchain(address)
 	fmt.Printf("address: %s\n", address)
 	cli.printChain()
 }

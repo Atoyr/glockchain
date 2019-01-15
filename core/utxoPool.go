@@ -150,6 +150,6 @@ func (up *UTXOPool) String() string {
 	}
 	return strings.Join(lines, "\n")
 }
-func getUTXOPoolKey(txhash []byte, index int) []byte {
-	return append(txhash, util.Int2bytes(index, 8)...)
+func getUTXOPoolKey(txid []byte, index int) []byte {
+	return append(txid, util.Int2bytes(index, 8)...)
 }

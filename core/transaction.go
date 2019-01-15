@@ -73,8 +73,8 @@ func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey) error {
 	txCopy := tx.TrimmedCopy()
 	for vindex := range txCopy.Input {
 		txCopy.Input[vindex].Signature = []byte{}
-		txCopyHash := txCopy.Hash()
-		r, s, err := ecdsa.Sign(rand.Reader, &privateKey, txCopyHash)
+		dataToSign := fmt.Sprintf("%x\n", txCopy)
+		r, s, err := ecdsa.Sign(rand.Reader, &privateKey, []byte(dataToSign))
 		if err != nil {
 			return errors.Wrap(err, getErrorMessage(94001))
 		}
@@ -101,18 +101,15 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 		return
 	}
 	for vindex, vin := range tx.Input {
-		log.Printf(hex.EncodeToString(vin.PrevTXHash))
 		prevTX := prevTXs[hex.EncodeToString(vin.PrevTXHash)]
 		hashPubKey := prevTX.Output[vin.PrevTXIndex].PubKeyHash
-		txCopy.Input[vindex].Signature = hashPubKey
-		txHash := txCopy.Hash()
+		txCopy.Input[vindex].PubKey = hashPubKey
+		dataToVerify := fmt.Sprintf("%x\n", txCopy)
 		r, s := getXY(vin.Signature)
 		x, y := getXY(vin.PubKey)
-		log.Printf("%x", vin.Signature)
-		log.Printf("%x", vin.PubKey)
 
 		rawPubKey := ecdsa.PublicKey{Curve: curve, X: &x, Y: &y}
-		if ecdsa.Verify(&rawPubKey, txHash, &r, &s) == false {
+		if ecdsa.Verify(&rawPubKey, []byte(dataToVerify), &r, &s) == false {
 			return false
 		}
 	}
@@ -125,12 +122,12 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 	var outputs []TXOutput
 
 	for _, vin := range tx.Input {
-		inputs = append(inputs, TXInput{vin.PrevTXHash, vin.PrevTXIndex, nil, vin.PubKey})
+		inputs = append(inputs, TXInput{vin.PrevTXHash, vin.PrevTXIndex, nil, nil})
 	}
 	for _, vout := range tx.Output {
 		outputs = append(outputs, TXOutput{vout.Value, vout.PubKeyHash})
 	}
-	txCopy := Transaction{tx.Version, []byte{}, inputs, outputs}
+	txCopy := Transaction{tx.Version, tx.ID, inputs, outputs}
 	return txCopy
 }
 
@@ -138,6 +135,7 @@ func (tx *Transaction) String() string {
 	var lines []string
 	lines = append(lines, fmt.Sprintf("Transaction  : %x", tx.Hash()))
 	lines = append(lines, fmt.Sprintf("  version    : %x", tx.Version))
+	lines = append(lines, fmt.Sprintf("  ID         : %x", tx.ID))
 	lines = append(lines, fmt.Sprintf("  Inputs     : %d", len(tx.Input)))
 	for i, in := range tx.Input {
 		lines = append(lines, fmt.Sprintf("    Input %d", i))
@@ -234,6 +232,7 @@ func NewCoinbaseTX(value int, to []byte) (*Transaction, error) {
 	tx.Version = 0x00
 	tx.Input = []TXInput{*txi}
 	tx.Output = []TXOutput{*txo}
+	tx.ID = tx.Hash()
 	wallets := NewWallets()
 	wallet := wallets.GetWallet(to)
 	err := tx.Sign(wallet.PrivateKey)
