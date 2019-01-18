@@ -57,7 +57,7 @@ func (block *Block) ToHash() []byte {
 
 // NewGenesisBlock is created genesis block
 // tx is the coinbase transaction
-func NewGenesisBlock(tx *Transaction) (block *Block, err error) {
+func NewGenesisBlock(tx *Transaction, address []byte) (block *Block, err error) {
 	block = &Block{}
 	block.Timestamp = time.Now().Unix()
 	block.Transactions = []*Transaction{tx}

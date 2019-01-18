@@ -225,16 +225,14 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) (*Transaction, error)
 }
 
 // NewCoinbaseTX Create New Coinbase TX
-func NewCoinbaseTX(value int, to []byte) (*Transaction, error) {
+func NewCoinbaseTX(value int, wallet *Wallet) (*Transaction, error) {
 	txi := &TXInput{[]byte{}, -1, []byte{}, []byte{}}
-	txo := NewTXOutput(value, to)
+	txo := NewTXOutput(value, wallet.GetAddress())
 	var tx Transaction
 	tx.Version = 0x00
 	tx.Input = []TXInput{*txi}
 	tx.Output = []TXOutput{*txo}
 	tx.ID = tx.Hash()
-	wallets := NewWallets()
-	wallet := wallets.GetWallet(to)
 	err := tx.Sign(wallet.PrivateKey)
 	if err != nil {
 		return nil, err

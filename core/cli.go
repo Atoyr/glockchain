@@ -148,8 +148,14 @@ func (cli *CLI) initialize() {
 			Aliases: []string{"m"},
 			Usage:   "mining action",
 			Action: func(c *urfaveCli.Context) error {
-				cli.mining()
+				address := c.String("a")
+				cli.mining(address)
 				return nil
+			},
+			Flags: []urfaveCli.Flag{
+				urfaveCli.StringFlag{
+					Name: "address, a",
+				},
 			},
 		},
 	}
@@ -185,8 +191,12 @@ func (cli *CLI) initializeBlockchain() {
 	cli.printChain()
 }
 func (cli *CLI) createBlockchain(address string) {
-	a := []byte(address)
-	_, err := CreateBlockchain(a)
+	wallets := NewWallets()
+	wallet, err := wallets.GetWallet(address)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = CreateBlockchain(wallet)
 	if err != nil {
 		log.Fatal(err)
 	}

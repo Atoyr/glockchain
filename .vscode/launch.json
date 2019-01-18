@@ -1,0 +1,17 @@
+{
+    // IntelliSense を使用して利用可能な属性を学べます。
+    // 既存の属性の説明をホバーして表示します。
+    // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${fileDirname}/..",
+            "env": {},
+            "args": ["t create -f 14m2FZHnoHMxmMf7gzc7S5RN1V6FhFA2fT -t 1D8wmm95rwqWcRuoQ9D1e37Nm2vZbknXo8 -am 10"]
+        }
+    ]
+}

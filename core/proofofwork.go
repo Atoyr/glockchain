@@ -20,6 +20,7 @@ type ProofOfWork struct {
 var maxnonce = math.MaxInt64
 
 const targetbits = 24
+const incentive = 100
 
 // NewProofOfWork ProofOfWork constructor
 func NewProofOfWork(bc *Blockchain, b *Block) (pow *ProofOfWork, err error) {
