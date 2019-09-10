@@ -9,8 +9,8 @@ import (
 
 // TXOutput Transaction output
 type TXOutput struct {
-	Value      int
-	PubKeyHash []byte
+	Value      int    `json:"value"`
+	PubKeyHash []byte `json:"pub_key_hash"`
 }
 
 // NewTXOutput TXOutput constructor

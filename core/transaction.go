@@ -19,10 +19,10 @@ import (
 
 // Transaction TX Data
 type Transaction struct {
-	Version byte
-	ID      []byte
-	Input   []TXInput
-	Output  []TXOutput
+	Version byte       `json:"version"`
+	ID      []byte     `json:"id"`
+	Input   []TXInput  `json:"input"`
+	Output  []TXOutput `json:"output"`
 }
 
 // IsCoinbase is return this transaction is coinbase?

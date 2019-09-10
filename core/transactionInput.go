@@ -8,10 +8,10 @@ import (
 
 // TXInput Transaction Input
 type TXInput struct {
-	PrevTXHash  []byte
-	PrevTXIndex int
-	Signature   []byte
-	PubKey      []byte
+	PrevTXHash  []byte `json:"prev_tx_hash"`
+	PrevTXIndex int    `json:"prev_tx_index"`
+	Signature   []byte `json:"signature"`
+	PubKey      []byte `json:"pub_key"`
 }
 
 // NewTXInput TXInput constructor
