@@ -41,9 +41,12 @@ func (ws *Wallets) GetAddresses() []string {
 }
 
 // GetWallet is Wallet from Wallets collection
-func (ws Wallets) GetWallet(address []byte) Wallet {
-	addr := string(address)
-	return *ws.Wallets[addr]
+func (ws Wallets) GetWallet(address string) (*Wallet, error) {
+	wallet, ok := ws.Wallets[address]
+	if ok == false {
+		return nil, NewGlockchainError(94001)
+	}
+	return wallet, nil
 }
 
 // SaveToFile is Save wallets data to file

@@ -7,21 +7,27 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/gob"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"math/big"
 	"strings"
 
+	"github.com/cbergoon/merkletree"
 	"github.com/pkg/errors"
 )
 
 // Transaction TX Data
 type Transaction struct {
-	Version   byte
-	ID        []byte
-	BlockHash []byte
-	Input     []TXInput
-	Output    []TXOutput
+	Version byte
+	ID      []byte
+	Input   []TXInput
+	Output  []TXOutput
+}
+
+// IsCoinbase is return this transaction is coinbase?
+func (tx *Transaction) IsCoinbase() bool {
+	return len(tx.Input) == 1 && len(tx.Input[0].PrevTXHash) == 0 && tx.Input[0].PrevTXIndex == -1
 }
 
 // Bytes Get Transaction Bytes
@@ -29,7 +35,6 @@ func (tx *Transaction) Bytes() []byte {
 	var b []byte
 	txCopy := *tx
 	b = append(b, txCopy.Version)
-	b = append(b, txCopy.BlockHash...)
 	for _, in := range txCopy.Input {
 		b = append(b, in.Hash()...)
 	}
@@ -48,13 +53,28 @@ func (tx *Transaction) Hash() []byte {
 	return hash2[:]
 }
 
+// CalculateHash is Hash for Merkletree
+func (tx Transaction) CalculateHash() ([]byte, error) {
+	return tx.Hash(), nil
+}
+
+func (tx Transaction) Equals(other merkletree.Content) (bool, error) {
+	if temptx, ok := other.(Transaction); ok {
+		return fmt.Sprintf("%x", tx.ID) == fmt.Sprintf("%x", temptx.ID), nil
+	}
+	return false, NewGlockchainError(10001)
+}
+
 // Sign sign TX
 func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey) error {
+	if tx.IsCoinbase() {
+		return nil
+	}
 	txCopy := tx.TrimmedCopy()
 	for vindex := range txCopy.Input {
 		txCopy.Input[vindex].Signature = []byte{}
-		txCopyHash := txCopy.Hash()
-		r, s, err := ecdsa.Sign(rand.Reader, &privateKey, txCopyHash)
+		dataToSign := fmt.Sprintf("%x\n", txCopy)
+		r, s, err := ecdsa.Sign(rand.Reader, &privateKey, []byte(dataToSign))
 		if err != nil {
 			return errors.Wrap(err, getErrorMessage(94001))
 		}
@@ -66,27 +86,30 @@ func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey) error {
 }
 
 // Verify verify TX
-func (tx *Transaction) Verify() bool {
+func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
+	if tx.IsCoinbase() {
+		return true
+	}
 	txCopy := tx.TrimmedCopy()
 	curve := elliptic.P256()
-	for vindex, vin := range txCopy.Input {
-		hashPubKey := HashPubKey(vin.PubKey)
-		txCopy.Input[vindex].Signature = hashPubKey
-		txHash := txCopy.Hash()
 
-		r := big.Int{}
-		s := big.Int{}
-		sigLen := len(vin.Signature)
-		r.SetBytes(vin.Signature[:(sigLen / 2)])
-		s.SetBytes(vin.Signature[(sigLen / 2):])
+	var getXY func(b []byte) (x, y big.Int)
+	getXY = func(b []byte) (x, y big.Int) {
+		sigLen := len(b)
+		x.SetBytes(b[:(sigLen / 2)])
+		y.SetBytes(b[(sigLen / 2):])
+		return
+	}
+	for vindex, vin := range tx.Input {
+		prevTX := prevTXs[hex.EncodeToString(vin.PrevTXHash)]
+		hashPubKey := prevTX.Output[vin.PrevTXIndex].PubKeyHash
+		txCopy.Input[vindex].PubKey = hashPubKey
+		dataToVerify := fmt.Sprintf("%x\n", txCopy)
+		r, s := getXY(vin.Signature)
+		x, y := getXY(vin.PubKey)
 
-		x := big.Int{}
-		y := big.Int{}
-		keyLen := len(vin.PubKey)
-		x.SetBytes(vin.PubKey[:(keyLen / 2)])
-		y.SetBytes(vin.PubKey[(keyLen / 2):])
 		rawPubKey := ecdsa.PublicKey{Curve: curve, X: &x, Y: &y}
-		if ecdsa.Verify(&rawPubKey, txHash, &r, &s) == false {
+		if ecdsa.Verify(&rawPubKey, []byte(dataToVerify), &r, &s) == false {
 			return false
 		}
 	}
@@ -104,7 +127,7 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 	for _, vout := range tx.Output {
 		outputs = append(outputs, TXOutput{vout.Value, vout.PubKeyHash})
 	}
-	txCopy := Transaction{tx.Version, tx.ID, []byte{}, inputs, outputs}
+	txCopy := Transaction{tx.Version, tx.ID, inputs, outputs}
 	return txCopy
 }
 
@@ -112,7 +135,7 @@ func (tx *Transaction) String() string {
 	var lines []string
 	lines = append(lines, fmt.Sprintf("Transaction  : %x", tx.Hash()))
 	lines = append(lines, fmt.Sprintf("  version    : %x", tx.Version))
-	lines = append(lines, fmt.Sprintf("  BlockHash  : %x", tx.BlockHash))
+	lines = append(lines, fmt.Sprintf("  ID         : %x", tx.ID))
 	lines = append(lines, fmt.Sprintf("  Inputs     : %d", len(tx.Input)))
 	for i, in := range tx.Input {
 		lines = append(lines, fmt.Sprintf("    Input %d", i))
@@ -161,6 +184,7 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) (*Transaction, error)
 	if err != nil {
 		return nil, err
 	}
+
 	acc, utxos := utxopool.FindSpendableOutputs(pubKeyHash, amount)
 	if acc < amount {
 		return nil, NewGlockchainError(93003)
@@ -170,7 +194,7 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) (*Transaction, error)
 	index := 0
 	for _, utxo := range utxos {
 		var txin TXInput
-		txin.PrevTXHash = utxo.TX.Hash()
+		txin.PrevTXHash = utxo.TX.ID
 		txin.PrevTXIndex = utxo.Index
 		txin.PubKey = wallet.PublicKey
 		inputs[index] = txin
@@ -183,7 +207,10 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) (*Transaction, error)
 	if diffamount > 0 {
 		outputs = append(outputs, *NewTXOutput(diffamount, wallet.GetAddress()))
 	}
-	tx := Transaction{Version, []byte{}, []byte{}, inputs, outputs}
+
+	tx := Transaction{Version, []byte{}, inputs, outputs}
+	tx.ID = tx.Hash()
+
 	err = tx.Sign(wallet.PrivateKey)
 	if err != nil {
 		return nil, err
@@ -198,15 +225,14 @@ func NewTransaction(wallet *Wallet, to []byte, amount int) (*Transaction, error)
 }
 
 // NewCoinbaseTX Create New Coinbase TX
-func NewCoinbaseTX(value int, to []byte) (*Transaction, error) {
+func NewCoinbaseTX(value int, wallet *Wallet) (*Transaction, error) {
 	txi := &TXInput{[]byte{}, -1, []byte{}, []byte{}}
-	txo := NewTXOutput(value, to)
+	txo := NewTXOutput(value, wallet.GetAddress())
 	var tx Transaction
 	tx.Version = 0x00
 	tx.Input = []TXInput{*txi}
 	tx.Output = []TXOutput{*txo}
-	wallets := NewWallets()
-	wallet := wallets.GetWallet(to)
+	tx.ID = tx.Hash()
 	err := tx.Sign(wallet.PrivateKey)
 	if err != nil {
 		return nil, err

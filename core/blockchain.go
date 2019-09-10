@@ -15,17 +15,17 @@ type Blockchain struct {
 
 // CreateBlockchain is create blockchain
 // if blockchain exists, error it
-func CreateBlockchain(address []byte) (*Blockchain, error) {
+func CreateBlockchain(wallet *Wallet) (*Blockchain, error) {
 	if dbExists(dbFile) {
 		return nil, NewGlockchainError(91002)
 	}
 	var tip []byte
-	cbtx, err := NewCoinbaseTX(100, address)
+	cbtx, err := NewCoinbaseTX(100, wallet)
 	if err != nil {
 		return nil, errors.Wrap(err, getErrorMessage(93002))
 	}
 
-	genesis := NewGenesisBlock(cbtx)
+	genesis, _ := NewGenesisBlock(cbtx, wallet.GetAddress())
 	db := getBlockchainDatabase()
 	err = db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucket([]byte(blocksBucket))
@@ -47,12 +47,6 @@ func CreateBlockchain(address []byte) (*Blockchain, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, getErrorMessage(91003))
 	}
-
-	up, err := GetUTXOPool()
-	if err != nil {
-		return nil, err
-	}
-	up.AddUTXO(genesis.Transactions[0])
 
 	bc := Blockchain{tip}
 	return &bc, nil
@@ -105,6 +99,31 @@ func (bc *Blockchain) AddBlock(block *Block) {
 func (bc *Blockchain) Iterator() *BlockchainIterator {
 	bci := BlockchainIterator{bc.tip}
 	return &bci
+}
+
+func (bc *Blockchain) FindTX(txid []byte) (*Transaction, error) {
+	emptyTx := Transaction{}
+	txp, err := NewTransactionPool()
+	if err != nil {
+		return nil, err
+	}
+	tx, err := txp.FindTX(txid)
+	if err == nil {
+		return tx, nil
+	}
+	bci := bc.Iterator()
+	for {
+		block := bci.Next()
+		if block.VerifyTX(txid) {
+			if tx, err := block.FindTX(txid); err == nil {
+				return tx, nil
+			}
+		}
+		if len(block.PreviousHash) == 0 {
+			break
+		}
+	}
+	return &emptyTx, NewGlockchainError(93007)
 }
 
 func getBlockchainDatabase() *bolt.DB {

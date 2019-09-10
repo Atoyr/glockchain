@@ -76,3 +76,23 @@ func (txp *TransactionPool) ClearTransactionPool() error {
 	txp.Pool = make([]*Transaction, 0, 1)
 	return nil
 }
+
+func (txp *TransactionPool) FindTX(txid []byte) (*Transaction, error) {
+	if dbExists(dbFile) == false {
+		return nil, NewGlockchainError(91001)
+	}
+	db := getBlockchainDatabase()
+	defer db.Close()
+	dummytx := Transaction{ID: txid}
+	emptytx := &Transaction{}
+	for _, t := range txp.Pool {
+		b, err := t.Equals(dummytx)
+		if err != nil {
+			return emptytx, err
+		}
+		if b {
+			return t, nil
+		}
+	}
+	return emptytx, NewGlockchainError(93007)
+}
