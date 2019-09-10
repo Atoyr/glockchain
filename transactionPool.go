@@ -1,4 +1,4 @@
-package core
+package glockChain
 
 import (
 	"github.com/boltdb/bolt"

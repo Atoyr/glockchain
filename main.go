@@ -1,9 +1,9 @@
-package main
+package glockChain
 
 import (
 	"os"
 
-	"github.com/atoyr/glockchain/core"
+	"github.com/atoyr/glockchain"
 )
 
 func main() {
