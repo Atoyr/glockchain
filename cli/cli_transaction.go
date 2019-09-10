@@ -1,17 +1,18 @@
-package cli
+package blockchain
 
 import (
 	"fmt"
+	"github.com/atoyr/glockchain/blockchain"
 	"log"
 )
 
 func (cli *CLI) createTransaction(from, to string, amount int) {
-	wallets := NewWallets()
+	wallets := blockchain.NewWallets()
 	wallet := wallets.Wallets[from]
 	if wallet == nil {
-		log.Fatal(NewGlockchainError(94001))
+		log.Fatal(blockchain.NewGlockchainError(94001))
 	}
-	tx, err := NewTransaction(wallet, []byte(to), amount)
+	tx, err := blockchain.NewTransaction(wallet, []byte(to), amount)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -19,7 +20,7 @@ func (cli *CLI) createTransaction(from, to string, amount int) {
 }
 
 func (cli *CLI) printTransactionPool() {
-	txp, err := NewTransactionPool()
+	txp, err := blockchain.NewTransactionPool()
 	if err != nil {
 		log.Fatal(err)
 	}

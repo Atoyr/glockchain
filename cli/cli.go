@@ -1,16 +1,17 @@
-package cli
+package blockchain
 
 import (
 	"fmt"
 	"log"
 
 	urfaveCli "github.com/urfave/cli"
+	"github.com/atoyr/glockchain/blockchain"
 )
 
 // CLI cli
 type CLI struct {
 	App *urfaveCli.App
-	Bc  *Blockchain
+	Bc  *blockchain.Blockchain
 }
 
 // NewCLI CLI constructor
@@ -183,7 +184,7 @@ func (cli *CLI) printExecute() {
 }
 
 func (cli *CLI) initializeBlockchain() {
-	wallets := NewWallets()
+	wallets := blockchain.NewWallets()
 	address := wallets.CreateWallet()
 	wallets.SaveToFile()
 	cli.createBlockchain(address)
@@ -191,12 +192,12 @@ func (cli *CLI) initializeBlockchain() {
 	cli.printChain()
 }
 func (cli *CLI) createBlockchain(address string) {
-	wallets := NewWallets()
+	wallets := blockchain.NewWallets()
 	wallet, err := wallets.GetWallet(address)
 	if err != nil {
 		log.Fatal(err)
 	}
-	_, err = CreateBlockchain(wallet)
+	_, err = blockchain.CreateBlockchain(wallet)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -204,7 +205,7 @@ func (cli *CLI) createBlockchain(address string) {
 
 func (cli *CLI) printChain() {
 	var err error
-	cli.Bc, _, err = GetBlockchain()
+	cli.Bc, _, err = blockchain.GetBlockchain()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -220,7 +221,7 @@ func (cli *CLI) printChain() {
 }
 
 func (cli *CLI) printUtxo() {
-	utxopool, err := GetUTXOPool()
+	utxopool, err := blockchain.GetUTXOPool()
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,32 +1,32 @@
-package cli
+package blockchain
 
 import (
 	"fmt"
 	"log"
 	"time"
+	"github.com/atoyr/glockchain/blockchain"
 )
 
 func (cli *CLI) mining(address string) {
-	wallets := NewWallets()
+	wallets := blockchain.NewWallets()
 	wallet, err := wallets.GetWallet(address)
 	if err != nil {
 		log.Fatal(err)
 	}
 	t := time.Now()
 	fmt.Printf("Execute mining at %d-%d-%d %d:%d:%d\n", t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
-	txpool, err := NewTransactionPool()
+	txpool, err := blockchain.NewTransactionPool()
 	if err != nil {
 		log.Fatal(err)
 	}
 	if len(txpool.Pool) == 0 {
-		fmt.Println(getErrorMessage(93001))
 		return
 	}
-	bc, tip, err := GetBlockchain()
+	bc, tip, err := blockchain.GetBlockchain()
 	if err != nil {
 		log.Fatal(err)
 	}
-	block, err := NewBlock(txpool.Pool, bc, tip)
+	block, err := blockchain.NewBlock(txpool.Pool, bc, tip)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -36,9 +36,9 @@ func (cli *CLI) mining(address string) {
 	fmt.Printf("\n\nFinished mining at %d-%d-%d %d:%d:%d\n", t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
 	fmt.Println("Add Block ")
 	fmt.Println(block)
-	tx, _ := NewCoinbaseTX(incentive, wallet)
-	txp, _ := NewTransactionPool()
-	up, _ := GetUTXOPool()
+	tx, _ := blockchain.NewCoinbaseTX(100, wallet)
+	txp, _ := blockchain.NewTransactionPool()
+	up, _ := blockchain.GetUTXOPool()
 	txp.AddTransaction(tx)
 	up.AddUTXO(tx)
 }
