@@ -1,4 +1,4 @@
-package glockChain
+package glockchain
 
 import (
 	"encoding/hex"
